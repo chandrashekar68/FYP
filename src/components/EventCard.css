@@ -1,0 +1,38 @@
+
+.event-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    margin: 8px;
+    transition: transform 0.2s;
+    width: calc(33.333% - 16px); /* Three cards per row */
+    box-sizing: border-box;
+  }
+  
+  .event-card:hover {
+    transform: scale(1.02);
+  }
+  
+  .event-card h3 {
+    margin: 0 0 8px;
+  }
+  
+  .event-card p {
+    margin: 4px 0;
+    color: #555;
+  }
+  
+  .event-card button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .event-card button:hover {
+    background-color: #2563eb;
+  }

@@ -1,0 +1,17 @@
+
+.event-list {
+    margin-bottom: 32px;
+  }
+  
+  .event-list h2 {
+    margin: 16px 0;
+    color: #333;
+    border-bottom: 2px solid #3b82f6;
+    padding-bottom: 8px;
+  }
+  
+  .event-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
