@@ -25,7 +25,7 @@ const Login = () => {
         setRole("Student"); // Assuming role is set to "Student" for all Google users
 
         // Redirect to /student after successful login
-        navigate("/student");
+        navigate("/create-profile");
       } catch (error) {
         setError("Google OAuth failed. Try again.");
       }
