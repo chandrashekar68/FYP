@@ -1,0 +1,25 @@
+.footer {
+    background-color: #0052a3;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .footer-logo {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+  }
+  
+  p {
+    margin: 0;
+  }
