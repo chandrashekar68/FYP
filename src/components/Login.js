@@ -1,9 +1,9 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from "react"; 
+import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import './Login.css';
-import { RoleContext } from '../context/RoleContext'; // Updated path
+import "./Login.css";
+import { RoleContext } from "../context/RoleContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -22,52 +22,45 @@ const Login = () => {
           }
         );
         console.log(userInfo.data);
-        setRole("Student"); // Assuming role is set to "Student" for all Google users
-
-        // Redirect to /student after successful login
-        navigate("/student");
+        setRole("Student");
+        navigate("/create-profile");
       } catch (error) {
         setError("Google OAuth failed. Try again.");
       }
     },
-    onError: (error) => setError("Login Failed"),
+    onError: () => setError("Login Failed"),
   });
 
   return (
-    <div className="login-container">
-      <h1>Login</h1>
-      {error && <p className="error">{error}</p>}
-      <form>
-        {/* Common fields for login */}
-        <div>
-          <label>Email</label>
+    <div className="wrapper">
+      <div className="login-container">
+        <form>
+          <h1>Log In</h1>
+          {error && <p className="error">{error}</p>}
           <input
             type="email"
+            placeholder="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-        </div>
-        <div>
-          <label>Password</label>
           <input
             type="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <button type="submit">Log In</button>
+          <button onClick={googleLogin} className="google-button">
+            <span className="google-icon">G</span> Sign in with Google
+          </button>
+        </form>
+        <div className="signup-link">
+          <span>Don't have an account? </span>
+          <button onClick={() => navigate("/signup")}>Sign up</button>
         </div>
-
-        <button type="submit">Login</button>
-      </form>
-
-      {/* Google login button */}
-      <button onClick={googleLogin}>Login with Google</button>
-
-      {/* Switch to signup */}
-      <button onClick={() => navigate("/signup")} style={{ marginTop: '10px', color: 'white' }}>
-        Switch to Signup
-      </button>
+      </div>
     </div>
   );
 };

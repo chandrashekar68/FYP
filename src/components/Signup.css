@@ -1,0 +1,137 @@
+.wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #6a11cb, #c8cdd5);
+  }
+  
+  .login-container {
+    background-color: #fff;
+    padding: 1.5rem; /* Reduced padding */
+    border-radius: 10px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    max-width: 500px; /* Reduced max-width */
+    width: 80%;
+    text-align: center;
+  }
+  
+  h1 {
+    font-size: 1.6rem; /* Slightly smaller font size */
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .error {
+    color: red;
+    margin-bottom: 0.8rem; /* Reduced margin */
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .form-col {
+    flex: 1;
+    margin-bottom: 0.5rem; /* Reduced margin */
+    margin-right: 10px;
+    text-align: left;
+  }
+  
+  .form-col:last-child {
+    margin-right: 0;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 0.4rem; /* Reduced margin */
+    font-weight: bold;
+    font-size: 0.9rem; /* Smaller label font */
+  }
+  
+  input {
+    width: 100%;
+    padding: 0.6rem; /* Reduced padding */
+    border: 1px solid #ddd;
+    border-radius: 6px; /* Reduced border radius */
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 0.5rem; /* Reduced margin */
+    font-size: 0.9rem; /* Smaller input font */
+  }
+  
+  input:focus {
+    border-color: #15181c;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+    outline: none;
+  }
+  
+  button {
+    width: 100%;
+    padding: 0.6rem; /* Reduced padding */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px; /* Reduced border radius */
+    cursor: pointer;
+    font-size: 0.9rem; /* Smaller button font */
+    transition: background-color 0.3s, box-shadow 0.3s;
+    margin-top: 0.8rem; /* Reduced margin */
+    text-transform: uppercase;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+  
+  .google-button {
+    background-color: #4285f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    padding: 0.6rem; /* Reduced padding */
+    border-radius: 6px; /* Reduced border radius */
+    cursor: pointer;
+    font-size: 0.9rem; /* Smaller button font */
+    width: 100%;
+    margin-top: 0.8rem; /* Reduced margin */
+    text-transform: uppercase;
+  }
+  
+  .google-button:hover {
+    background-color: #357ae8;
+  }
+  
+  .signup-link {
+    margin-top: 15px; /* Reduced margin */
+    font-size: 14px; /* Smaller font size */
+    color: #666;
+  }
+  
+  .signup-link span {
+    color: #333;
+  }
+  
+  .signup-link button {
+    background: none;
+    border: none;
+    color: #2575fc;
+    cursor: pointer;
+    font-size: 14px; /* Smaller button font */
+    font-weight: 500;
+  }
+  
+  .signup-link button:hover {
+    text-decoration: underline;
+  }
