@@ -14,6 +14,8 @@ import {
 import { Card, CardBody, CardTitle, CardText } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { events, recommendedEvents } from './data';
+import Chatbot from './Chatbot';
+import '../styles/Chatbot.css'; // Ensure styles are applied
 
 const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +24,7 @@ const LandingPage = () => {
   const [eventList, setEventList] = useState([]);
   const [recommendedList, setRecommendedList] = useState([]);
   const [userRole, setUserRole] = useState('');
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   useEffect(() => {
     setEventList(events);
@@ -43,6 +46,10 @@ const LandingPage = () => {
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
       (!filter || event.category === filter)
   );
+
+  const toggleChatbot = () => {
+    setIsChatbotOpen(!isChatbotOpen);
+  };
 
   return (
     <Container fluid>
@@ -115,6 +122,13 @@ const LandingPage = () => {
           </Row>
         </Col>
       </Row>
+
+      <div className="chatbot-container">
+        <button className="chatbot-button" onClick={toggleChatbot}>
+          {isChatbotOpen ? '×' : '+'}
+        </button>
+        {isChatbotOpen && <Chatbot />}
+      </div>
     </Container>
   );
 };

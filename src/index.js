@@ -7,11 +7,6 @@ import { RoleProvider } from './context/RoleContext';
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-const renderRoot = ReactDOM.createRoot(document.getElementById('header'));
-
-renderRoot.render(
-  <Header />
-)
 
 root.render(
   <React.StrictMode>
