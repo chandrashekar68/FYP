@@ -133,3 +133,43 @@ h1 {
 .side-drawer li:last-child {
   margin-bottom: 0;
 }
+.notification-icon {
+  margin-left: 10px;
+  width: 24px; /* Adjust size */
+  height: 24px;
+  cursor: pointer; /* Indicates interactivity */
+  margin-right: 16px; /* Add spacing if needed */
+}
+.profile-menu {
+  position: absolute;
+  right: 10px; /* Adjust this based on your layout */
+  top: 60px; /* Position it below the profile icon */
+  background-color: white; /* Menu background color */
+  border-radius: 8px; /* Rounded corners for modern look */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth appear effect */
+  opacity: 0; /* Start hidden */
+  transform: translateY(-10px); /* Start slightly moved up */
+  pointer-events: none; /* Prevent interaction until visible */
+  z-index: 1000; /* Ensure it's above other elements */
+}
+
+.profile-photo:hover + .profile-menu, 
+.profile-menu:hover {
+  opacity: 1; /* Make visible on hover */
+  transform: translateY(0); /* Slide into place on hover */
+  pointer-events: auto; /* Allow interaction */
+}
+
+.profile-menu p {
+  margin: 0;
+  padding: 12px 20px; /* Comfortable padding */
+  font-size: 1em; /* Uniform font size */
+  color: #333; /* Text color */
+  cursor: pointer;
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.profile-menu p:hover {
+  background-color: #f4f4f4; /* Light background on hover */
+}

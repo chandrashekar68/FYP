@@ -1,4 +1,3 @@
-
 import React, { createContext, useState } from 'react';
 
 export const RoleContext = createContext();

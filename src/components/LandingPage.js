@@ -15,12 +15,13 @@ import { Card, CardBody, CardTitle, CardText } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { events, recommendedEvents } from './data';
 
-const LandingPage = ({ userRole }) => {
+const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [eventList, setEventList] = useState([]);
   const [recommendedList, setRecommendedList] = useState([]);
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     setEventList(events);
@@ -45,9 +46,9 @@ const LandingPage = ({ userRole }) => {
 
   return (
     <Container fluid>
-      <Row className="mb-3">
+      <Row className="mb-3 justify-content-center">
         <Col md={8} className="d-flex">
-          <InputGroup className="me-2">
+          <InputGroup className="me-2 w-100">
             <Input
               type="text"
               placeholder="Search for upcoming events..."
