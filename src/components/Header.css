@@ -13,9 +13,13 @@ body {
 
 /* Header Styles */
 .header {
+  position: fixed; /* Makes the header fixed at the top */
+  top: 0; /* Aligns the header to the top */
+  /* viewport */
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  width: 100vw;
   padding: 15px 30px;
   background: linear-gradient(90deg, #4e73df, #224abe); /* Gradient background */
   border-bottom: 1px solid #ddd;

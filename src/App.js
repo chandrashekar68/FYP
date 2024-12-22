@@ -30,7 +30,7 @@ function App() {
 
   return (
     <Router>
-      <Header />
+      {/* <Header /> */}
       <Routes>
         <Route path="/" element={<h1>Healthy</h1>} />
         <Route path="/login" element={<Login />} />
