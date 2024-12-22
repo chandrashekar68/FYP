@@ -1,7 +1,6 @@
-
 import React from 'react';
 import EventCard from './EventCard';
-import './EventList.css';
+import './styles/EventList.css';
 
 function EventList({ events, title }) {
   const alertDetails = (title) => {

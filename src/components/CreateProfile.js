@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Select from "react-select";
 import { useNavigate } from 'react-router-dom';
 import { Input, Button, Form, FormGroup, Label } from "reactstrap";
-import './CreateProfile.css'; // Import custom CSS
+import '../styles/CreateProfile.css'; // Import custom CSS
 
 const CreateProfile = () => {
     const [role, setRole] = useState("student");

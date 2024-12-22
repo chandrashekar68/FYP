@@ -1,8 +1,9 @@
-import React, { useState, useContext } from "react"; 
+import React from 'react';
+import { useState, useContext } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import "./Login.css";
+import "../styles/Login.css";
 import { RoleContext } from "../context/RoleContext";
 
 const Login = () => {

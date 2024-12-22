@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.e8c85b8b.css",
+    "main.js": "/static/js/main.f06e3736.js",
+    "static/media/girl.png": "/static/media/girl.653da395c1a34285b09c.png",
+    "static/media/swamiji.png": "/static/media/swamiji.6850e06aa203863dfc7e.png",
+    "index.html": "/index.html",
+    "static/media/submenu-icon.svg": "/static/media/submenu-icon.0df2c9a6c0438c49227aacaffb19be58.svg",
+    "main.e8c85b8b.css.map": "/static/css/main.e8c85b8b.css.map",
+    "main.f06e3736.js.map": "/static/js/main.f06e3736.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e8c85b8b.css",
+    "static/js/main.f06e3736.js"
+  ]
+}

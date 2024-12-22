@@ -15,12 +15,13 @@ import { Card, CardBody, CardTitle, CardText } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { events, recommendedEvents } from './data';
 
-const LandingPage = ({ userRole }) => {
+const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [eventList, setEventList] = useState([]);
   const [recommendedList, setRecommendedList] = useState([]);
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     setEventList(events);

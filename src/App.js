@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react"; // Import useState and useEf
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import StudentDashboard from './components/StudentDashboard';
+// import StudentDashboard from './components/StudentDashboard';
 import CreateProfile from './components/CreateProfile';
 import LandingPage from './components/LandingPage';
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import Header from "./Shared/Header";
+import Footer from "./Shared/Footer";
 
 function App() {
   const [isBottom, setIsBottom] = useState(false);
