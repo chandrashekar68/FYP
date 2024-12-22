@@ -1,45 +1,139 @@
-.login-container {
-    background-color: #fff;
-    padding: 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-    margin-top: 5rem;
-    margin-left: auto;
-    margin-right: auto; /* Center the container horizontally */
-    margin-top: 2rem; /* Add space between header and login/signup */
-  }
-  
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-    background-color: #007bff;
-    height: 80px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-    border-bottom: 2px solid #0056b3;
-    position: relative;
-  }
-  
-  .header-logo {
-    width: 80px;
-    height: 80px;
-    position: absolute;
-    top: 50%;
-    left: 20px;
-    transform: translateY(-50%);
-    
-  }
-  
-  .header-title {
-    font-size: 1.8rem;
-    color: #fff;
-    margin: 0;
-    flex-grow: 1;
-    text-align: center;
-    font-weight: bold;
-  }
-  
+/* Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+/* Header Styles */
+.header {
+  position: fixed; /* Makes the header fixed at the top */
+  top: 0; /* Aligns the header to the top */
+  /* viewport */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100vw;
+  padding: 15px 30px;
+  background: linear-gradient(90deg, #4e73df, #224abe); /* Gradient background */
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.left {
+  display: flex;
+  align-items: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.75em;
+  font-weight: bold;
+  color: white; /* White text for the header */
+  text-transform: uppercase; /* Uppercase for modern styling */
+  letter-spacing: 1px; /* Spacing between letters */
+}
+
+.submenu-icon {
+  font-size: 28px;
+  margin-right: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease; /* Smooth background change on hover */
+}
+
+.submenu-icon:hover {
+  background-color: rgba(255, 255, 255, 0.2); /* Subtle hover effect */
+}
+
+.submenu-icon svg {
+  width: 28px; /* Increased width for better visibility */
+  height: 28px;
+  fill: white; /* White icon color */
+  transition: transform 0.3s ease; /* Smooth rotation for effect */
+}
+
+.submenu-icon:hover svg {
+  transform: rotate(90deg); /* Rotate icon on hover */
+}
+
+.right ul {
+  display: flex;
+  list-style: none;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.right li {
+  margin-left: 20px;
+  font-size: 1.1em;
+  color: white;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.right li:hover {
+  color: #ffbb33; /* Change color on hover */
+}
+
+.profile-photo {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 2px solid white; /* Border for the profile photo */
+  transition: transform 0.3s ease; /* Smooth transform on hover */
+}
+
+.profile-photo:hover {
+  transform: scale(1.1); /* Slightly enlarge the photo on hover */
+}
+
+/* Side Drawer Styles */
+.side-drawer {
+  position: fixed;
+  top: 0;
+  left: -250px; /* Initially off-screen */
+  width: 250px;
+  height: 100%;
+  background-color: #333;
+  color: white;
+  transition: left 0.3s ease; /* Smooth transition for sliding */
+  padding: 20px;
+  z-index: 1000; /* Ensures the side drawer is above other content */
+}
+
+.side-drawer.open {
+  left: 0; /* When open, slide in */
+}
+
+.side-drawer ul {
+  list-style: none;
+  padding: 0;
+}
+
+.side-drawer li {
+  margin: 20px 0;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.side-drawer li:hover {
+  color: #ffbb33; /* Change color on hover */
+}
+
+.side-drawer li:last-child {
+  margin-bottom: 0;
+}

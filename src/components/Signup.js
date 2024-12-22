@@ -2,8 +2,8 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import './Login.css';
-import { RoleContext } from '../context/RoleContext'; // Updated path
+import './Signup.css'; // Use separate CSS file for Signup
+import { RoleContext } from '../context/RoleContext';
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -23,61 +23,60 @@ const Signup = () => {
           }
         );
         console.log(userInfo.data);
-        setRole("Student"); // Assuming role is set to "Student" for all Google users
-
-        // Redirect to login page after signup success
+        setRole("Student");
         navigate("/login");
       } catch (error) {
         setError("Google OAuth failed. Try again.");
       }
     },
-    onError: (error) => setError("Signup Failed"),
+    onError: () => setError("Signup Failed"),
   });
 
   return (
-    <div className="login-container">
-      <h1>Signup</h1>
-      {error && <p className="error">{error}</p>}
-      <form>
-        {/* Signup fields */}
-        <div>
-          <label>Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+    <div className="wrapper">
+      <div className="login-container">
+        <h1>Signup</h1>
+        {error && <p className="error">{error}</p>}
+        <form>
+          <div className="form-row">
+            <div className="form-col">
+              <label>Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-col">
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit">Signup</button>
+        </form>
+        <button onClick={googleSignup} className="google-button">
+          <span className="google-icon">G</span> Signup with Google
+        </button>
+        <div className="signup-link">
+          <span>Already have an account? </span>
+          <button onClick={() => navigate("/login")}>Login</button>
         </div>
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <button type="submit">Signup</button>
-      </form>
-
-      {/* Google signup button */}
-      <button onClick={googleSignup}>Signup with Google</button>
-
-      {/* Switch to login */}
-      <button onClick={() => navigate("/login")} style={{ marginTop: '10px', color: 'white' }}>
-        Switch to Login
-      </button>
+      </div>
     </div>
   );
 };

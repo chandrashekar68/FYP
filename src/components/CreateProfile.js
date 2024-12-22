@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Select from "react-select";
 import { useNavigate } from 'react-router-dom';
 import { Input, Button, Form, FormGroup, Label } from "reactstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+import './CreateProfile.css'; // Import custom CSS
 
 const CreateProfile = () => {
     const [role, setRole] = useState("student");
@@ -30,7 +30,7 @@ const CreateProfile = () => {
     const handleRoleChange = (selectedOption) => {
         setRole(selectedOption.value);
 
-        if (selectedOption.value === "supervisor"){
+        if (selectedOption.value === "supervisor") {
             setDetails({ ...details, clubName: "college", eventName: "", eventDescription: "" });
         } else {
             setDetails({ ...details, clubName: "", eventName: "", eventDescription: "" });
@@ -40,17 +40,15 @@ const CreateProfile = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log("Profile Details: ", details);
-
         navigate("/dashboard");
-        // Add logic to handle profile submission (e.g., API call)
     };
 
     return (
-        <div className="container mt-5">
-            <h2>Create Profile</h2>
+        <div className="profile-container">
+            <h2 className="form-title">Create Profile</h2>
             <Form onSubmit={handleSubmit}>
-                <FormGroup>
-                    <Label for="usn">USN</Label>
+                <FormGroup className="form-group">
+                    <Label for="usn" className="form-label">USN</Label>
                     <Input
                         type="text"
                         id="usn"
@@ -59,11 +57,12 @@ const CreateProfile = () => {
                         onChange={handleInputChange}
                         placeholder="Enter your USN"
                         required
+                        className="input-field"
                     />
                 </FormGroup>
 
-                <FormGroup>
-                    <Label for="fullName">Full Name</Label>
+                <FormGroup className="form-group">
+                    <Label for="fullName" className="form-label">Full Name</Label>
                     <Input
                         type="text"
                         id="fullName"
@@ -72,22 +71,24 @@ const CreateProfile = () => {
                         onChange={handleInputChange}
                         placeholder="Enter your full name"
                         required
+                        className="input-field"
                     />
                 </FormGroup>
 
-                <FormGroup>
-                    <Label for="role">Role</Label>
+                <FormGroup className="form-group">
+                    <Label for="role" className="form-label">Role</Label>
                     <Select
                         id="role"
                         options={roleOptions}
                         defaultValue={roleOptions[0]}
                         onChange={handleRoleChange}
+                        className="select-field"
                     />
                 </FormGroup>
 
                 {role === "organizer" && (
-                    <FormGroup>
-                        <Label for="clubName">Club Name</Label>
+                    <FormGroup className="form-group">
+                        <Label for="clubName" className="form-label">Club Name</Label>
                         <Input
                             type="text"
                             id="clubName"
@@ -96,11 +97,12 @@ const CreateProfile = () => {
                             onChange={handleInputChange}
                             placeholder="Enter your club name"
                             required
+                            className="input-field"
                         />
                     </FormGroup>
                 )}
 
-                <Button color="primary" type="submit">
+                <Button color="primary" type="submit" className="submit-btn">
                     Create Profile
                 </Button>
             </Form>
