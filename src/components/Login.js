@@ -1,15 +1,16 @@
-import React, { useState, useContext } from "react"; 
+// src/components/Login.js
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import "./Login.css";
-import { RoleContext } from "../context/RoleContext";
+import "../styles/Login.css";
+import { useAuth } from "../context/AuthContext";  // Use useAuth hook
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { setRole } = useContext(RoleContext);
+  const { login } = useAuth(); // Use login function from useAuth
   const navigate = useNavigate();
 
   const googleLogin = useGoogleLogin({
@@ -22,7 +23,7 @@ const Login = () => {
           }
         );
         console.log(userInfo.data);
-        setRole("Student");
+        login();  // Login the user
         navigate("/create-profile");
       } catch (error) {
         setError("Google OAuth failed. Try again.");

@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import './Signup.css'; // Use separate CSS file for Signup
+import '../styles/Signup.css'; // Use separate CSS file for Signup
 import { RoleContext } from '../context/RoleContext';
 
 const Signup = () => {

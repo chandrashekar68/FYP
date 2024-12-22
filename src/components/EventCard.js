@@ -1,6 +1,5 @@
-
 import React from 'react';
-import './EventCard.css';
+import './styles/EventCard.css';
 
 function EventCard({ event, onViewDetails }) {
   return (
