@@ -1,31 +1,59 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import '../styles/Signup.css'; // Use separate CSS file for Signup
-import { RoleContext } from '../context/RoleContext';
+import '../styles/Signup.css';
 
 const Signup = () => {
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState(""); // Changed from name to username
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { setRole } = useContext(RoleContext);
   const navigate = useNavigate();
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    
+    // Email validation
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+  
+    // Password validation
+    if (!passwordRegex.test(password)) {
+      setError("Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, and a number.");
+      return;
+    }
+  
+    try {
+      // console.log(username);
+      // console.log(email);
+      // console.log(password);
+      const { data } = await axios.post(
+        "http://localhost:8000/signup", 
+        { username, email, password },
+        { headers: { "Content-Type": "application/json" }} 
+      );
+      console.log(data);
+      navigate("/login");
+    } catch (err) {
+      setError(err.response ? err.response.data.detail : "Error during signup");
+    }
+  };
 
   const googleSignup = useGoogleLogin({
     onSuccess: async (response) => {
       try {
-        const userInfo = await axios.get(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            headers: { Authorization: `Bearer ${response.access_token}` },
-          }
+        const { data } = await axios.post(
+          "http://localhost:8000/auth/google-signup", 
+          { token: response.access_token },
+          { headers: { "Content-Type": "application/json" }} // Ensure correct headers
         );
-        console.log(userInfo.data);
-        setRole("Student");
         navigate("/login");
-      } catch (error) {
+      } catch (err) {
         setError("Google OAuth failed. Try again.");
       }
     },
@@ -37,14 +65,14 @@ const Signup = () => {
       <div className="login-container">
         <h1>Signup</h1>
         {error && <p className="error">{error}</p>}
-        <form>
+        <form onSubmit={handleSignup}>
           <div className="form-row">
             <div className="form-col">
-              <label>Name</label>
+              <label>Username</label> {/* Changed from Name to Username */}
               <input
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={username} // Changed from name to username
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
             </div>
