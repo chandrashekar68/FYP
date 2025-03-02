@@ -1,4 +1,5 @@
 import mysql.connector
+from decimal import Decimal
 
 # Database configuration
 db_config = {
@@ -9,9 +10,16 @@ db_config = {
     "auth_plugin": "mysql_native_password"
 }
 
-
 def get_db_connection():
     return mysql.connector.connect(**db_config)
+
+# Helper function to convert Decimal values
+def convert_decimal_to_float(data):
+    if isinstance(data, list):
+        return [convert_decimal_to_float(item) for item in data]
+    elif isinstance(data, dict):
+        return {k: float(v) if isinstance(v, Decimal) else v for k, v in data.items()}
+    return data
 
 # CRUD Operations
 def fetch_all(table):
@@ -20,7 +28,7 @@ def fetch_all(table):
     cursor.execute(f"SELECT * FROM {table}")
     results = cursor.fetchall()
     conn.close()
-    return results
+    return convert_decimal_to_float(results)
 
 def fetch_by_id(table, id_column, id_value):
     conn = get_db_connection()
@@ -28,7 +36,7 @@ def fetch_by_id(table, id_column, id_value):
     cursor.execute(f"SELECT * FROM {table} WHERE {id_column} = %s", (id_value,))
     result = cursor.fetchone()
     conn.close()
-    return result
+    return convert_decimal_to_float(result)
 
 def insert(table, data):
     conn = get_db_connection()
