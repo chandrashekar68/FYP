@@ -5,6 +5,7 @@ import girlImage from '../assets/girl.png';
 import { ReactComponent as SubmenuIcon } from '../assets/submenu-icon.svg';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Notification from "../components/Notification";
 
 const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -47,6 +48,7 @@ const Header = () => {
       </div>
       <nav className="right">
         <ul>
+          <li><Notification /></li>
           <li>About</li>
           <li>Events</li>
           {profileCreated && <li>Notification</li>}

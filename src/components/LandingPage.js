@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Container,
   Row,
@@ -13,9 +14,9 @@ import {
 } from 'reactstrap';
 import { Card, CardBody, CardTitle, CardText } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { events, recommendedEvents } from './data';
+import { events, recommendedEvents } from './sample_events';
 import Chatbot from './Chatbot';
-import '../styles/Chatbot.css'; // Ensure styles are applied
+import '../styles/Chatbot.css';
 import '../styles/LandingPage.css';
 
 const LandingPage = () => {
@@ -26,14 +27,35 @@ const LandingPage = () => {
   const [recommendedList, setRecommendedList] = useState([]);
   const [userRole, setUserRole] = useState('');
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    setEventList(events);
+    // Retrieve stored email from localStorage
+    const storedEmail = localStorage.getItem("userEmail");
+    if (storedEmail) {
+      setUserEmail(storedEmail);
+      fetchUserEvents(storedEmail);
+      console.log('Fetched User Events from the backend');
+    } else {
+      setEventList(events);  // Default events if no user is logged in
+      console.log('Fetched Sampele events');
+    }
+
     setRecommendedList(recommendedEvents);
   }, []);
 
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+  // Function to fetch events based on the user's clubs
+  const fetchUserEvents = async (email) => {
+    try {
+      const { data } = await axios.get(`http://localhost:8000/users/${email}/events`);
+      setEventList(data);  // Set fetched events
+    } catch (error) {
+      console.error("Error fetching user events:", error);
+      setEventList(events);  // Fallback to default events
+    }
+  };
 
+  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const handleSearch = (e) => setSearchQuery(e.target.value);
 
   const filteredUpcomingEvents = eventList.filter(
@@ -91,28 +113,6 @@ const LandingPage = () => {
             <h3>Upcoming Events</h3>
             <Row>
               {filteredUpcomingEvents.map((event) => (
-                <Col key={event.id} md={4} className="mb-4">
-                  <Card>
-                    <CardBody>
-                      <CardTitle>{event.title}</CardTitle>
-                      <CardText>{event.category}</CardText>
-                      <Button color="primary">View Details</Button>
-                    </CardBody>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </Col>
-        </Row>
-      )}
-
-      {/* Recommended Events Section */}
-      {filteredRecommendedEvents.length > 0 && (
-        <Row className="mb-5">
-          <Col md={12}>
-            <h3>Recommended Events</h3>
-            <Row>
-              {filteredRecommendedEvents.map((event) => (
                 <Col key={event.id} md={4} className="mb-4">
                   <Card>
                     <CardBody>

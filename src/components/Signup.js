@@ -15,34 +15,28 @@ const Signup = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    
-    // Email validation
+  
     if (!emailRegex.test(email)) {
       setError("Please enter a valid email address");
       return;
     }
   
-    // Password validation
-    if (!passwordRegex.test(password)) {
-      setError("Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, and a number.");
-      return;
-    }
+    // if (!passwordRegex.test(password)) {
+    //   setError("Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, and a number.");
+    //   return;
+    // }
   
     try {
-      // console.log(username);
-      // console.log(email);
-      // console.log(password);
-      const { data } = await axios.post(
-        "http://localhost:8000/signup", 
-        { username, email, password },
-        { headers: { "Content-Type": "application/json" }} 
-      );
-      console.log(data);
+      const { data } = await axios.post("http://localhost:8000/signup", { username, email, password });
+  
+      // Store email in localStorage after successful signup
+      localStorage.setItem("userEmail", email);
+  
       navigate("/login");
     } catch (err) {
       setError(err.response ? err.response.data.detail : "Error during signup");
     }
-  };
+  };  
 
   const googleSignup = useGoogleLogin({
     onSuccess: async (response) => {
