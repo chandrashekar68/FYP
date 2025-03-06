@@ -1,10 +1,9 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { useNavigate } from 'react-router-dom';
 import { Input, Button, Form, FormGroup, Label } from "reactstrap";
 import '../styles/CreateProfile.css';
-import { useAuth } from "../context/AuthContext";  // Import useAuth
+import { useAuth } from "../context/AuthContext";
 
 const CreateProfile = () => {
   const [role, setRole] = useState("student");
@@ -12,11 +11,18 @@ const CreateProfile = () => {
     usn: "",
     fullName: "",
     clubName: "",
-    eventName: "",
-    eventDescription: ""
+    email: ""
   });
+
   const navigate = useNavigate();
-  const { markProfileAsCreated } = useAuth();  // Get function from context to mark profile as created
+  const { markProfileAsCreated } = useAuth();
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("userEmail");
+    if (storedEmail) {
+      setDetails(prevDetails => ({ ...prevDetails, email: storedEmail }));
+    }
+  }, []);
 
   const roleOptions = [
     { value: "student", label: "Student" },
@@ -26,23 +32,48 @@ const CreateProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setDetails({ ...details, [name]: value });
+    setDetails(prevDetails => ({ ...prevDetails, [name]: value }));
   };
 
   const handleRoleChange = (selectedOption) => {
     setRole(selectedOption.value);
-    if (selectedOption.value === "supervisor") {
-      setDetails({ ...details, clubName: "college", eventName: "", eventDescription: "" });
-    } else {
-      setDetails({ ...details, clubName: "", eventName: "", eventDescription: "" });
-    }
+    setDetails(prevDetails => ({
+      ...prevDetails,
+      clubName: selectedOption.value === "supervisor" ? "college" : ""
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Profile Details: ", details);
-    markProfileAsCreated();  // Mark profile as created in context
-    navigate("/dashboard");
+    try {
+      const requestBody = {
+        usn: details.usn,
+        username: details.fullName,
+        role: role,
+        clubName: role === "organizer" ? details.clubName : (role === "supervisor" ? "college" : ""),
+        email: details.email
+      };
+
+      console.log(requestBody);
+
+      const response = await fetch("http://localhost:8000/create-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create profile: ${await response.text()}`);
+      }
+
+      console.log("Profile Created Successfully");
+      markProfileAsCreated();
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error creating profile:", error);
+    }
   };
 
   return (
@@ -82,7 +113,7 @@ const CreateProfile = () => {
           <Select
             id="role"
             options={roleOptions}
-            defaultValue={roleOptions[0]}
+            value={roleOptions.find(opt => opt.value === role)}
             onChange={handleRoleChange}
             className="select-field"
           />

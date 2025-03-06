@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import EventForm from "./components/EventForm";
 import CreateProfile from './components/CreateProfile';
 import LandingPage from './components/LandingPage';
 import Header from "./Shared/Header";
@@ -36,6 +37,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<LandingPage />} />
           <Route path="/create-profile" element={<CreateProfile />} />
+          <Route path="/add-event" element={<EventForm />} />
         </Routes>
         {isBottom && <Footer />}
       </Router>

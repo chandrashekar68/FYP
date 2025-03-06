@@ -48,12 +48,14 @@ const LandingPage = () => {
   const fetchUserEvents = async (email) => {
     try {
       const { data } = await axios.get(`http://localhost:8000/users/${email}/events`);
-      setEventList(data);  // Set fetched events
+      console.log("Fetched events:", data); // Debugging
+      setEventList(data);
     } catch (error) {
       console.error("Error fetching user events:", error);
-      setEventList(events);  // Fallback to default events
+      setEventList(events);  // Fallback
     }
   };
+  
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const handleSearch = (e) => setSearchQuery(e.target.value);
@@ -112,12 +114,15 @@ const LandingPage = () => {
           <Col md={12}>
             <h3>Upcoming Events</h3>
             <Row>
-              {filteredUpcomingEvents.map((event) => (
+            {filteredUpcomingEvents.map((event) => (
                 <Col key={event.id} md={4} className="mb-4">
                   <Card>
                     <CardBody>
                       <CardTitle>{event.title}</CardTitle>
-                      <CardText>{event.category}</CardText>
+                      <CardText><strong>Organizer:</strong> {event.organizer}</CardText>
+                      <CardText><strong>Start:</strong> {new Date(event.start_date).toLocaleString()}</CardText>
+                      <CardText><strong>End:</strong> {new Date(event.end_date).toLocaleString()}</CardText>
+                      <CardText><strong>Location:</strong> {event.location}</CardText>
                       <Button color="primary">View Details</Button>
                     </CardBody>
                   </Card>

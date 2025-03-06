@@ -5,12 +5,11 @@ const Notification = () => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
     
-    // Get userEmail from localStorage
     const userEmail = localStorage.getItem("userEmail");
 
     // Fetch notifications
     const fetchNotifications = async () => {
-        if (!userEmail) return; // Ensure userEmail exists
+        if (!userEmail) return;
         try {
             const response = await fetch(`http://localhost:8000/users/${userEmail}/notifications`);
             if (!response.ok) throw new Error("Failed to fetch notifications");
@@ -28,6 +27,7 @@ const Notification = () => {
         try {
             await fetch(`http://localhost:8000/users/${userEmail}/notifications/mark_read`, { method: "POST" });
             setUnreadCount(0);
+            setNotifications((prev) => prev.map(n => ({ ...n, is_read: true })));
         } catch (error) {
             console.error("Error marking notifications as read:", error);
         }
@@ -36,7 +36,7 @@ const Notification = () => {
     // Fetch notifications when component mounts
     useEffect(() => {
         if (userEmail) fetchNotifications();
-    }, [userEmail]); // Runs when userEmail changes
+    }, [userEmail]);
 
     // Toggle dropdown
     const toggleDropdown = () => {
@@ -57,7 +57,17 @@ const Notification = () => {
             </div>
             {isOpen && (
                 <ul className="notification-dropdown">
-                    {notifications.length === 0 ? <li>No new notifications</li> : notifications.map((notif) => <li key={notif.id}>{notif.message}</li>)}
+                    {notifications.length === 0 ? (
+                        <li>No new notifications</li>
+                    ) : (
+                        notifications.map((notif) => (
+                            <li key={notif.id} className={notif.is_read ? "read" : "unread"}>
+                                <strong>{notif.title}</strong>
+                                <p>{notif.message}</p>
+                                <small>{new Date(notif.sent_at).toLocaleString()}</small>
+                            </li>
+                        ))
+                    )}
                 </ul>
             )}
         </div>

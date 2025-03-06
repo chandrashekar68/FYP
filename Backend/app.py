@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from model import User, TokenRequest
+from model import UserAuth, UserProfile, TokenRequest, Event
 from connection import get_db_connection
 from smtp_config import send_email
 import os
@@ -14,7 +14,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins, you can restrict to specific domains if needed
+    allow_origins=["http://localhost:3000"],  # Allow all origins, you can restrict to specific domains if needed
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allow all headers
@@ -24,49 +24,70 @@ app.add_middleware(
 def home():
     return {"message": "Hello World"}
 
-# Endpoint to add an event and notify users
 @app.post("/add_event")
-async def add_event(title: str, description: str, event_date: str, location: str, club_id: int):
+async def add_event(event: Event):
     connection = get_db_connection()
     cursor = connection.cursor()
 
     try:
-        # Insert event into database
+        # ✅ Insert event into the database
         cursor.execute(
-            "INSERT INTO events (title, description, event_date, location, club_id) VALUES (%s, %s, %s, %s, %s)",
-            (title, description, event_date, location, club_id),
+            """
+            INSERT INTO events (event_name, organizer_name, club_id, is_internal, start_date_time, 
+                                end_date_time, location_type, location, max_participants)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                event.event_name, event.organizer_name, event.club_id, event.is_internal, 
+                event.start_date_time, event.end_date_time, event.location_type, 
+                event.location, event.max_participants
+            )
         )
-        event_id = cursor.lastrowid
+        event_id = cursor.lastrowid  # Get the new event ID
         connection.commit()
 
-        # Fetch club name
-        cursor.execute("SELECT name FROM clubs WHERE id = %s", (club_id,))
+        # ✅ Fetch club name
+        cursor.execute("SELECT club_name FROM clubs WHERE club_id = %s", (event.club_id,))
         club = cursor.fetchone()
         if not club:
             raise HTTPException(status_code=404, detail="Club not found")
-        club_name = club[0]
+        club_name = club[0]  # Use index-based access
 
-        # Fetch all users subscribed to this club
-        cursor.execute("SELECT u.user_id, u.email FROM users u JOIN user_clubs uc ON u.user_id = uc.user_id WHERE uc.club_id = %s", (club_id,))
+        # ✅ Fetch users subscribed to the club
+        cursor.execute("SELECT user_id, email FROM users WHERE club_id = %s", (event.club_id,))
         users = cursor.fetchall()
 
-        # Insert notifications for each user
-        for user in users:
-            user_id, email = user
-            message = f"{club_name} has added a new event!\n {title}" 
-            cursor.execute("INSERT INTO notifications (user_id, event_id, message) VALUES (%s, %s, %s)", (user_id, event_id, message))
-            send_email(email, club_name, title)  # Send email notification
+        # ✅ Check if users exist
+        if not users:
+            return {"message": f"Event '{event.event_name}' added, but no users to notify."}
+
+        # Insert notifications & send emails
+        for user_id, email in users:
+            message = f"{club_name} has added a new event!\n{event.event_name}"
+
+            # ✅ Fix missing 'title' column in notifications
+            cursor.execute(
+                """
+                INSERT INTO notifications (user_id, event_id, title, message, notification_type, is_read)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (user_id, event_id, event.event_name, message, "eventUpdate", False)
+            )
+
+            send_email(email, club_name, event.event_name)  # Send email notification
 
         connection.commit()
-        cursor.close()
-        connection.close()
-
-        return {"message": f"Event '{title}' added & notifications sent!"}
+        return {"message": f"Event '{event.event_name}' added & notifications sent!"}
 
     except Exception as e:
         connection.rollback()
         raise HTTPException(status_code=500, detail=f"Error adding event: {str(e)}")
-    
+
+    finally:
+        cursor.close()
+        connection.close()
+
+# Fetch Notifications    
 @app.get("/users/{email}/notifications")
 async def get_notifications(email: str):
     connection = get_db_connection()
@@ -84,17 +105,31 @@ async def get_notifications(email: str):
     unread_count = cursor.fetchone()[0]
 
     # Fetch notifications
-    cursor.execute("SELECT id, message, is_read FROM notifications WHERE user_id = %s ORDER BY created_at DESC", (user_id,))
+    cursor.execute("""
+        SELECT notification_id, title, message, notification_type, sent_at, is_read 
+        FROM notifications 
+        WHERE user_id = %s 
+        ORDER BY sent_at DESC
+    """, (user_id,))
+    
     notifications = cursor.fetchall()
-
     cursor.close()
     connection.close()
 
     return {
         "unread_count": unread_count,
-        "notifications": [{"id": n[0], "message": n[1], "is_read": n[2]} for n in notifications]
+        "notifications": [
+            {
+                "id": n[0],
+                "title": n[1],
+                "message": n[2],
+                "type": n[3],
+                "sent_at": n[4].isoformat(),
+                "is_read": n[5],
+            }
+            for n in notifications
+        ],
     }
-
 
 @app.post("/users/{email}/notifications/mark_read")
 async def mark_notifications_read(email: str):
@@ -109,13 +144,13 @@ async def mark_notifications_read(email: str):
     user_id = user[0]
 
     # Mark all notifications as read
-    cursor.execute("UPDATE notifications SET is_read = TRUE WHERE user_id = %s", (user_id,))
+    cursor.execute("UPDATE notifications SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE", (user_id,))
     connection.commit()
 
     cursor.close()
     connection.close()
 
-    return {"message": "Notifications marked as read"}
+    return {"message": "All notifications marked as read"}
 
 
 @app.get("/users/{email}/clubs", response_model=List[dict])
@@ -156,60 +191,61 @@ async def get_user_events(email: str):
         raise HTTPException(status_code=404, detail="User not found")
     user_id = user[0]
 
-    # Get club IDs
-    cursor.execute("SELECT club_id FROM user_clubs WHERE user_id = %s", (user_id,))
-    club_ids = [row[0] for row in cursor.fetchall()]
+    # Fetch event IDs where the user is registered
+    cursor.execute("SELECT event_id FROM eventRegistration WHERE user_id = %s", (user_id,))
+    event_ids = [row[0] for row in cursor.fetchall()]
     
-    if not club_ids:
-        print("Could not fetch Club ID")
+    if not event_ids:
+        print("User has no registered events")
         return []
 
     # Convert list into a tuple for safe SQL execution
-    format_strings = ','.join(['%s'] * len(club_ids))
+    format_strings = ','.join(['%s'] * len(event_ids))
+    
+    # Fetch club IDs associated with these events
     query = f"""
-        SELECT id, title, description, event_date, location, club_id
+        SELECT event_id, event_name, organizer_name, start_date_time, end_date_time, location, club_id
         FROM events
-        WHERE club_id IN ({format_strings})
+        WHERE event_id IN ({format_strings})
     """
-    
-    cursor.execute(query, tuple(club_ids))
+    cursor.execute(query, tuple(event_ids))
     events = cursor.fetchall()
-    
+
     cursor.close()
     connection.close()
-    
+
     return [{
         "id": e[0],
         "title": e[1],
-        "description": e[2],
-        "date": e[3].isoformat() if e[3] else None,
-        "location": e[4],
-        "club_id": e[5]
+        "organizer": e[2],
+        "start_date": e[3].isoformat() if e[3] else None,
+        "end_date": e[4].isoformat() if e[4] else None,
+        "location": e[5],
+        "club_id": e[6]
     } for e in events]
 
 
-
-# Signup route (for regular users)
+# Signup (Regular Users)
 @app.post("/signup")
-async def signup(user: User):
+async def signup(user: UserAuth):
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    # print(user)
-
-    # Simple SQL query to check if the email already exists
+    # Check if email exists
     cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
     existing_user = cursor.fetchone()
-    
+
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
 
-    # Hash the password before saving it to the database
+    # Hash the password
     hashed_password = hashlib.sha256(user.password.encode()).hexdigest()
 
-    # Insert new user into database
-    cursor.execute("INSERT INTO users (user_name, email, password) VALUES (%s, %s, %s)", 
-                   (user.username, user.email, hashed_password))
+    # Insert new user (Default role: 'student', club_id NULL by default)
+    cursor.execute(
+        "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
+        (user.email, hashed_password)
+    )
     connection.commit()
 
     cursor.close()
@@ -217,48 +253,80 @@ async def signup(user: User):
 
     return {"message": "User created successfully"}
 
-
-# Login route (for regular users)
+# Login (Regular Users)
 @app.post("/login")
-async def login(user: User):
+async def login(user: UserAuth):
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    # print(user)
-
-    # Check if the user exists and the password matches
-    cursor.execute("SELECT * FROM users WHERE email = %s", (user.email,))
+    # Fetch user
+    cursor.execute("SELECT email, password_hash FROM users WHERE email = %s", (user.email,))
     existing_user = cursor.fetchone()
-
-    # print("before checking user exists")
 
     if not existing_user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User does not exist")
-    
-    # print("after checking user exists")
 
-    # Hash the input password and compare it
+    # Hash and compare passwords
     input_password_hash = hashlib.sha256(user.password.encode()).hexdigest()
-
-    # print("before checking pass hash")
-
-    # print("Existing User: ")
-    # print(existing_user)
-
-    if input_password_hash != existing_user[3]:  # Assuming password is the third column
-        # print(f"Pass hash: {input_password_hash}")
-        # print(existing_user[3])
+    if input_password_hash != existing_user[1]:  # password_hash is in the 5th column
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    
-    print("after checking pass hash")
-    
+
     cursor.close()
     connection.close()
 
     return {"message": "Login successful"}
 
+@app.post("/create-profile")
+async def create_user_profile(request: UserProfile):
+    body = request.dict()
 
-# Google OAuth Signup/Login
+    # Extract data from request body
+    usn = body.get("usn")
+    username = body.get("username")
+    role = body.get("role")
+    clubName = body.get("clubName")
+    email = body.get("email")
+
+    if not all([usn, username, role, email]):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing required fields")
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    # Check if user exists
+    cursor.execute("SELECT email FROM users WHERE email = %s", (email,))
+    existing_user = cursor.fetchone()
+
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User does not exist")
+
+    print("User Fetched")
+
+    # Fetch Club ID using Club Name
+    cursor.execute("SELECT club_id FROM clubs WHERE club_name = %s", (clubName,))
+    club_id = cursor.fetchone()
+    club_id = club_id[0] if club_id else None
+
+    if clubName and not club_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Club does not exist")
+
+    # Update user profile
+    cursor.execute(
+        "UPDATE users SET user_name = %s, usn = %s, role = %s, club_id = %s WHERE email = %s",
+        (username, usn, role, club_id, email)
+    )
+
+    print("Updated Users Table")
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return {"message": "Profile updated successfully"}
+    
+
+
+# Google OAuth Login
 @app.post("/auth/google-login")
 async def google_login(request: TokenRequest):
     token = request.token
@@ -295,7 +363,7 @@ async def google_login(request: TokenRequest):
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
-
+# Google OAuth Signup
 @app.post("/auth/google-signup")
 async def google_signup(request: TokenRequest):
     token = request.token
@@ -342,3 +410,27 @@ async def google_signup(request: TokenRequest):
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    
+@app.get("/get_user_role")
+def get_user_role(email: str):
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT role FROM users WHERE email = %s", (email,))
+        user_role = cursor.fetchone()
+
+        print(user_role)
+
+        if user_role is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {"user_role": user_role[0]}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching user role: {str(e)}")
+
+    finally:
+        cursor.close()
+        connection.close()
+

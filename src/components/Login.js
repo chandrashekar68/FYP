@@ -8,7 +8,6 @@ import { useAuth } from "../context/AuthContext";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -29,7 +28,7 @@ const Login = () => {
     // }
   
     try {
-      const { data } = await axios.post("http://localhost:8000/login", { username, email, password });
+      const { data } = await axios.post("http://localhost:8000/login", { email, password });
   
       if (data.message === "Login successful") {
         localStorage.setItem("userEmail", email); // Store email in local storage

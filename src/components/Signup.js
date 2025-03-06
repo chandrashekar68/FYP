@@ -5,7 +5,6 @@ import axios from "axios";
 import '../styles/Signup.css';
 
 const Signup = () => {
-  const [username, setUsername] = useState(""); // Changed from name to username
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,14 +26,22 @@ const Signup = () => {
     // }
   
     try {
-      const { data } = await axios.post("http://localhost:8000/signup", { username, email, password });
-  
+      const { data } = await axios.post("http://localhost:8000/signup", { email, password });
+
       // Store email in localStorage after successful signup
       localStorage.setItem("userEmail", email);
   
       navigate("/login");
     } catch (err) {
-      setError(err.response ? err.response.data.detail : "Error during signup");
+      if (err.response && err.response.data.detail) {
+        const errorMessage = Array.isArray(err.response.data.detail)
+          ? err.response.data.detail.map((e) => e.msg).join(", ")
+          : err.response.data.detail;
+        
+        setError(errorMessage);
+      } else {
+        setError("Error during signup");
+      }
     }
   };  
 
@@ -44,7 +51,7 @@ const Signup = () => {
         const { data } = await axios.post(
           "http://localhost:8000/auth/google-signup", 
           { token: response.access_token },
-          { headers: { "Content-Type": "application/json" }} // Ensure correct headers
+          { headers: { "Content-Type": "application/json" }}
         );
         navigate("/login");
       } catch (err) {
@@ -61,15 +68,6 @@ const Signup = () => {
         {error && <p className="error">{error}</p>}
         <form onSubmit={handleSignup}>
           <div className="form-row">
-            <div className="form-col">
-              <label>Username</label> {/* Changed from Name to Username */}
-              <input
-                type="text"
-                value={username} // Changed from name to username
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
             <div className="form-col">
               <label>Email</label>
               <input
