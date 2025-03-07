@@ -6,13 +6,12 @@ import '../styles/CreateProfile.css';
 import { useAuth } from "../context/AuthContext";
 
 const CreateProfile = () => {
-  const [role, setRole] = useState("student");
+  const [role, setRole] = useState("Student");
   const [details, setDetails] = useState({
-    usn: "",
     fullName: "",
-    clubName: "",
     email: ""
   });
+  const [usn, setUsn] = useState("");
 
   const navigate = useNavigate();
   const { markProfileAsCreated } = useAuth();
@@ -25,9 +24,9 @@ const CreateProfile = () => {
   }, []);
 
   const roleOptions = [
-    { value: "student", label: "Student" },
-    { value: "organizer", label: "Organizer" },
-    { value: "supervisor", label: "Supervisor" }
+    { value: "Student", label: "Student" },
+    { value: "Organizer", label: "Organizer" },
+    { value: "Supervisor", label: "Supervisor" }
   ];
 
   const handleInputChange = (e) => {
@@ -35,23 +34,25 @@ const CreateProfile = () => {
     setDetails(prevDetails => ({ ...prevDetails, [name]: value }));
   };
 
+  const handleUsnChange = (e) => {
+    setUsn(e.target.value);
+  };
+
   const handleRoleChange = (selectedOption) => {
     setRole(selectedOption.value);
-    setDetails(prevDetails => ({
-      ...prevDetails,
-      clubName: selectedOption.value === "supervisor" ? "college" : ""
-    }));
+    if (selectedOption.value !== "Student") {
+      setUsn("");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const requestBody = {
-        usn: details.usn,
-        username: details.fullName,
-        role: role,
-        clubName: role === "organizer" ? details.clubName : (role === "supervisor" ? "college" : ""),
-        email: details.email
+        usn: role === "Student" ? usn : "",
+        username: details.fullName || "",
+        role: role || "Student",
+        email: details.email || localStorage.getItem('userEmail')
       };
 
       console.log(requestBody);
@@ -80,22 +81,8 @@ const CreateProfile = () => {
     <div className="profile-container">
       <h2 className="form-title">Create Profile</h2>
       <Form onSubmit={handleSubmit}>
-        <FormGroup className="form-group">
-          <Label for="usn" className="form-label">USN</Label>
-          <Input
-            type="text"
-            id="usn"
-            name="usn"
-            value={details.usn}
-            onChange={handleInputChange}
-            placeholder="Enter your USN"
-            required
-            className="input-field"
-          />
-        </FormGroup>
-
-        <FormGroup className="form-group">
-          <Label for="fullName" className="form-label">Full Name</Label>
+      <FormGroup className="form-group">
+        <Label for="fullName" className="form-label">Full Name</Label>
           <Input
             type="text"
             id="fullName"
@@ -119,16 +106,16 @@ const CreateProfile = () => {
           />
         </FormGroup>
 
-        {role === "organizer" && (
+        {role === "Student" && (
           <FormGroup className="form-group">
-            <Label for="clubName" className="form-label">Club Name</Label>
+            <Label for="usn" className="form-label">USN</Label>
             <Input
               type="text"
-              id="clubName"
-              name="clubName"
-              value={details.clubName}
-              onChange={handleInputChange}
-              placeholder="Enter your club name"
+              id="usn"
+              name="usn"
+              value={usn}
+              onChange={handleUsnChange}
+              placeholder="Enter your USN"
               required
               className="input-field"
             />

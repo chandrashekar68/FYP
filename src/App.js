@@ -6,6 +6,7 @@ import Signup from "./components/Signup";
 import EventForm from "./components/EventForm";
 import CreateProfile from './components/CreateProfile';
 import LandingPage from './components/LandingPage';
+import ClubRegistration from "./components/ClubRegistration";
 import Header from "./Shared/Header";
 import Footer from "./Shared/Footer";
 import { AuthProvider } from "./context/AuthContext";
@@ -38,6 +39,7 @@ function App() {
           <Route path="/dashboard" element={<LandingPage />} />
           <Route path="/create-profile" element={<CreateProfile />} />
           <Route path="/add-event" element={<EventForm />} />
+          <Route path="/club-registration" element={<ClubRegistration />} />
         </Routes>
         {isBottom && <Footer />}
       </Router>

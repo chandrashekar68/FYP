@@ -15,6 +15,7 @@ def get_db_connection():
             database=os.environ.get('MYSQL_DATABASE')
         )
         if connection.is_connected():
+            print("connection success")
             return connection
     except Error as e:
         print("Error while connecting to MySQL:", e)

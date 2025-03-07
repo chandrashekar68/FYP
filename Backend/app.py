@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from model import UserAuth, UserProfile, TokenRequest, Event
+from model import UserAuth, UserProfile, TokenRequest, Event, ClubRegistrationRequest, EventRegistrationRequest
 from connection import get_db_connection
 from smtp_config import send_email
 import os
@@ -54,7 +54,12 @@ async def add_event(event: Event):
         club_name = club[0]  # Use index-based access
 
         # ✅ Fetch users subscribed to the club
-        cursor.execute("SELECT user_id, email FROM users WHERE club_id = %s", (event.club_id,))
+        cursor.execute("""
+                SELECT users.user_id, users.email 
+                FROM users 
+                INNER JOIN user_clubs ON users.user_id = user_clubs.user_id
+                WHERE user_clubs.club_id = %s
+            """, (event.club_id,))
         users = cursor.fetchall()
 
         # ✅ Check if users exist
@@ -179,7 +184,8 @@ async def get_user_clubs(email: str):
     
     return [{"id": c[0], "name": c[1], "description": c[2]} for c in clubs]
 
-@app.get("/users/{email}/events", response_model=List[dict])
+# Get User Registered Events with Club Names
+@app.get("/users/{email}/events")
 async def get_user_events(email: str):
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -196,33 +202,122 @@ async def get_user_events(email: str):
     event_ids = [row[0] for row in cursor.fetchall()]
     
     if not event_ids:
-        print("User has no registered events")
-        return []
+        return {"message": "No registered events", "events": []}
 
     # Convert list into a tuple for safe SQL execution
     format_strings = ','.join(['%s'] * len(event_ids))
-    
-    # Fetch club IDs associated with these events
+
+    # Fetch events and corresponding club names
     query = f"""
-        SELECT event_id, event_name, organizer_name, start_date_time, end_date_time, location, club_id
-        FROM events
-        WHERE event_id IN ({format_strings})
+        SELECT e.event_id, e.event_name, e.organizer_name, e.start_date_time, 
+               e.end_date_time, e.location, e.club_id, c.club_name 
+        FROM events e 
+        JOIN clubs c ON e.club_id = c.club_id 
+        WHERE e.event_id IN ({format_strings})
     """
+
     cursor.execute(query, tuple(event_ids))
     events = cursor.fetchall()
 
     cursor.close()
     connection.close()
 
-    return [{
-        "id": e[0],
-        "title": e[1],
-        "organizer": e[2],
-        "start_date": e[3].isoformat() if e[3] else None,
-        "end_date": e[4].isoformat() if e[4] else None,
-        "location": e[5],
-        "club_id": e[6]
-    } for e in events]
+    return {
+        "events": [
+            {
+                "id": e[0],
+                "title": e[1],
+                "organizer": e[2],
+                "start_date": e[3].isoformat() if e[3] else None,
+                "end_date": e[4].isoformat() if e[4] else None,
+                "location": e[5],
+                "club_id": e[6],
+                "club_name": e[7]  # Fetching club name properly
+            }
+            for e in events
+        ]
+    }
+
+
+# Get User Name to Check if he has already created the profile
+@app.get("/get_user_name")
+async def get_user_name(email: str):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    # Get user ID from email
+    cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id = user[0]
+
+    cursor.execute("SELECT user_name FROM users WHERE user_id = %s", (user_id,))
+    user_name = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    if user_name[0] == None:
+        return {"user_name": ""}
+    else:
+        return {"user_name": user_name[0]}
+
+
+# Get All Club Events of the User's Subscribed Clubs
+@app.get("/users/{email}/available_events")
+async def get_available_events(email: str):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    # Get user ID from email
+    cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id = user[0]
+
+    # Get all clubs the user is subscribed to
+    cursor.execute("SELECT club_id FROM user_clubs WHERE user_id = %s", (user_id,))
+    subscribed_clubs = cursor.fetchall()
+
+    if not subscribed_clubs:
+        return {"message": "No clubs subscribed", "events": []}
+
+    club_ids = [club[0] for club in subscribed_clubs]
+
+    # Correctly format the SQL query
+    format_strings = ','.join(['%s'] * len(club_ids))
+    query = f"""
+        SELECT e.event_id, e.event_name, e.organizer_name, e.start_date_time, 
+               e.end_date_time, e.location, e.club_id, c.club_name 
+        FROM events e 
+        JOIN clubs c ON e.club_id = c.club_id 
+        WHERE e.club_id IN ({format_strings})
+    """
+
+    cursor.execute(query, tuple(club_ids))
+    events = cursor.fetchall()
+    
+    cursor.close()
+    connection.close()
+
+    event_list = [
+        {
+            "id": event[0],
+            "title": event[1],
+            "organizer": event[2],
+            "start_date": event[3].isoformat() if event[3] else None,
+            "end_date": event[4].isoformat() if event[4] else None,
+            "location": event[5],
+            "club_id": event[6],
+            "club_name": event[7]  # Now correctly fetching club name
+        }
+        for event in events
+    ]
+
+    return {"events": event_list}
+
 
 
 # Signup (Regular Users)
@@ -241,7 +336,7 @@ async def signup(user: UserAuth):
     # Hash the password
     hashed_password = hashlib.sha256(user.password.encode()).hexdigest()
 
-    # Insert new user (Default role: 'student', club_id NULL by default)
+    # Insert new user (Default role: 'student')
     cursor.execute(
         "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
         (user.email, hashed_password)
@@ -287,8 +382,8 @@ async def create_user_profile(request: UserProfile):
     clubName = body.get("clubName")
     email = body.get("email")
 
-    if not all([usn, username, role, email]):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing required fields")
+    # if not all([usn, username, role, email]):
+    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing required fields")
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -302,18 +397,10 @@ async def create_user_profile(request: UserProfile):
 
     print("User Fetched")
 
-    # Fetch Club ID using Club Name
-    cursor.execute("SELECT club_id FROM clubs WHERE club_name = %s", (clubName,))
-    club_id = cursor.fetchone()
-    club_id = club_id[0] if club_id else None
-
-    if clubName and not club_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Club does not exist")
-
     # Update user profile
     cursor.execute(
-        "UPDATE users SET user_name = %s, usn = %s, role = %s, club_id = %s WHERE email = %s",
-        (username, usn, role, club_id, email)
+        "UPDATE users SET user_name = %s, usn = %s, role = %s WHERE email = %s",
+        (username, usn, role, email)
     )
 
     print("Updated Users Table")
@@ -434,3 +521,138 @@ def get_user_role(email: str):
         cursor.close()
         connection.close()
 
+# Get all the Clubs in the Database
+@app.get("/get_clubs")
+async def get_clubs():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("SELECT club_id, club_name FROM clubs")  # Fetch both columns
+        clubs = cursor.fetchall()
+
+        return {"clubs": [{"club_id": club[0], "club_name": club[1]} for club in clubs]}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching clubs: {str(e)}")
+
+    finally:
+        cursor.close()
+        connection.close()
+
+
+
+# Register to a club using club name
+@app.post("/users/{email}/register_club")
+async def register_club(email: str, request: ClubRegistrationRequest):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Get user_id from email
+        cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user_id = user[0]
+
+        # Check if user is already registered in the club
+        cursor.execute("SELECT * FROM user_clubs WHERE user_id = %s AND club_id = %s", (user_id, request.club_id))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="User already registered to the club")
+
+        # Insert into user_clubs table
+        cursor.execute("INSERT INTO user_clubs (user_id, club_id) VALUES (%s, %s)", (user_id, request.club_id))
+        connection.commit()
+
+        return {"message": f"Successfully registered {email} to {request.club_name}"}
+
+    except Exception as e:
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.post("/users/{email}/register_event")
+async def register_event(email: str, request: EventRegistrationRequest):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id = user[0]
+
+    cursor.execute("SELECT * FROM eventRegistration WHERE user_id = %s AND event_id = %s", (user_id, request.event_id))
+    if cursor.fetchone():
+        raise HTTPException(status_code=400, detail="User already registered for the event")
+
+    cursor.execute("INSERT INTO eventRegistration (user_id, event_id) VALUES (%s, %s)", (user_id, request.event_id))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+    return {"message": "Successfully registered for the event"}
+
+
+# Award points to users when they participate in events
+@app.post("/users/{email}/events/{event_id}/earn_points")
+async def earn_points(email: str, event_id: int):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    # Check if user exists
+    cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id = user[0]
+    
+    # Award points for participation
+    points = 10  # Default points per event
+    cursor.execute("UPDATE users SET points = points + %s WHERE user_id = %s", (points, user_id))
+    connection.commit()
+    
+    cursor.close()
+    connection.close()
+    
+    return {"message": f"User {email} earned {points} points for attending event {event_id}"}
+
+# Get user points & badges
+@app.get("/users/{email}/gamification")
+async def get_user_gamification(email: str):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    # Get user details
+    cursor.execute("SELECT user_id, points FROM users WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user_id, points = user
+    
+    # Fetch user badges
+    cursor.execute("SELECT badge_name FROM badges WHERE user_id = %s", (user_id,))
+    badges = [row[0] for row in cursor.fetchall()]
+    
+    cursor.close()
+    connection.close()
+    
+    return {"points": points, "badges": badges}
+
+# Get global leaderboard
+@app.get("/leaderboard", response_model=List[dict])
+async def get_leaderboard():
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    cursor.execute("SELECT name, points FROM users ORDER BY points DESC LIMIT 10")
+    leaderboard = cursor.fetchall()
+    
+    cursor.close()
+    connection.close()
+    
+    return [{"name": row[0], "points": row[1]} for row in leaderboard]

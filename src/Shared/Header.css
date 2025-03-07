@@ -178,3 +178,19 @@ h1 {
 .profile-menu p:hover {
   background-color: #f4f4f4; /* Light background on hover */
 }
+
+.register-club-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.3s;
+  margin-right: 10px;
+}
+
+.register-club-btn:hover {
+  background-color: #0056b3;
+}

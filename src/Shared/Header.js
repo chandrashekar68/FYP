@@ -26,7 +26,7 @@ const Header = () => {
   const fetchUserRole = async (email) => {
     try {
       const response = await axios.get(`http://localhost:8000/get_user_role?email=${email}`);
-      console.log(response.data.user_role);
+      // console.log(`${response.data.user_role}`);
       setUserRole(response.data.user_role);
     } catch (error) {
       console.error("Error fetching user role:", error);
@@ -75,16 +75,27 @@ const Header = () => {
         <ul>
           <li><Notification /></li>
 
+          {/* Show Register to Club Button for Logged-in Users */}
+          {isLoggedIn && (
+            <li>
+              <button className="register-club-btn" onClick={() => navigate('/club-registration')}>
+                Register to Club
+              </button>
+            </li>
+          )}
+
           {/* Show Create Event Button Only for Organizers/Supervisors */}
           {isLoggedIn && (userRole === "Organizer" || userRole === "Supervisor") && (
             <li>
-              <button className="create-event-btn" onClick={() => navigate('/add-event')}>Create Event</button>
+              <button className="create-event-btn" onClick={() => navigate('/add-event')}>
+                Create Event
+              </button>
             </li>
           )}
 
           <li>About</li>
           <li>Events</li>
-          
+
           {!isLoggedIn ? (
             <li onClick={handleLoginClick}>Login</li>
           ) : (

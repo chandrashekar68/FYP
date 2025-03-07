@@ -1,3 +1,4 @@
+from typing import List
 from pydantic import BaseModel
 from enum import Enum
 
@@ -9,13 +10,11 @@ class UserDetails(BaseModel):
     username: str
     usn: str
     role: str = "student"
-    club_id: int | None
 
 class UserProfile(BaseModel):
     usn: str
     username: str
     role: str
-    clubName: str
     email: str
 
 class TokenRequest(BaseModel):
@@ -40,3 +39,10 @@ class Event(BaseModel):
     location_type: str  # 'virtual' | 'onCampus' | 'offCampus'
     location: str
     max_participants: int
+
+class ClubRegistrationRequest(BaseModel):
+    club_id: int  # Integer ID of the club
+    club_name: str  # Name of the club
+
+class EventRegistrationRequest(BaseModel):
+    event_id: int
