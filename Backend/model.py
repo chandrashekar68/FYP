@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from enum import Enum
 
@@ -39,6 +39,8 @@ class Event(BaseModel):
     location_type: str  # 'virtual' | 'onCampus' | 'offCampus'
     location: str
     max_participants: int
+    is_paid_event: Optional[bool] = False
+    event_price: Optional[float] = 0.00
 
 class ClubRegistrationRequest(BaseModel):
     club_id: int  # Integer ID of the club
@@ -46,3 +48,10 @@ class ClubRegistrationRequest(BaseModel):
 
 class EventRegistrationRequest(BaseModel):
     event_id: int
+    payment_reference: str = None
+
+class PaymentRequest(BaseModel):
+    amount: int  # in rupees
+    currency: str = "INR"
+    receipt: str
+    notes: dict = {}

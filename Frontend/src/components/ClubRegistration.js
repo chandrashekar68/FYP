@@ -31,7 +31,7 @@ const ClubRegistration = () => {
       return;
     }
 
-    try {
+    try { 
       const response = await axios.post(
         `http://localhost:8000/users/${email}/register_club`,
         {

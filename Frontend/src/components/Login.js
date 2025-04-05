@@ -12,6 +12,8 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+  const API_BASE = process.env.REACT_APP_API_BASE_URL;
   
   const handleLogin = async (e) => {
     e.preventDefault();

@@ -1,0 +1,13 @@
+FROM node:18
+
+WORKDIR /app
+
+COPY ./Frontend/package*.json ./Frontend/
+
+WORKDIR /app/Frontend
+
+RUN npm install
+
+COPY ./Frontend .
+
+CMD ["npm", "start"]
