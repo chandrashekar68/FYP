@@ -143,6 +143,11 @@ const LandingPage = () => {
                       <CardText>
                         <strong>Location:</strong> {event.location}
                       </CardText>
+                      {/* Display whether the event is paid or not */}
+                      <CardText>
+                        <strong>Payment Status:</strong>{" "}
+                        {event.is_paid_event ? "Paid" : "Free"}
+                      </CardText>
                       <Button color="primary" onClick={() => handleViewDetails(event)}>
                         View Details
                       </Button>
@@ -182,6 +187,11 @@ const LandingPage = () => {
                       </CardText>
                       <CardText>
                         <strong>Location:</strong> {event.location}
+                      </CardText>
+                      {/* Display whether the event is paid or not */}
+                      <CardText>
+                        <strong>Payment Status:</strong>{" "}
+                        {event.is_paid_event ? "Paid" : "Free"}
                       </CardText>
                       <Button color="primary" onClick={() => handleViewDetails(event)}>
                         View Details

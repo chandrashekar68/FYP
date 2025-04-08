@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
-from model import UserAuth, UserProfile, TokenRequest, Event, ClubRegistrationRequest, EventRegistrationRequest, PaymentRequest
+from model import UserAuth, UserProfile, TokenRequest, Event, ClubRegistrationRequest, EventRegistrationRequest, Club
 from connection import get_db_connection
 from smtp_config import send_email
 import os
@@ -11,6 +11,7 @@ import hashlib
 import requests
 from typing import List
 import razorpay
+from paypal import router as paypal_router
 
 app = FastAPI()
 
@@ -22,12 +23,38 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+app.include_router(paypal_router, tags=["PayPal"])
+
 # Razorpay client initialization
 razorpay_client = razorpay.Client(auth=("RAZORPAY_KEY_ID", "RAZORPAY_SECRET_KEY"))
 
 @app.get("/")
 def home():
     return {"message": "Hello World"}
+
+@app.post("/add_club")
+async def add_club(club: Club):
+    try:
+        # Establish connection to MySQL
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # SQL query to insert data into clubs table
+        sql_query = """
+        INSERT INTO clubs (club_name, club_admin, club_description)
+        VALUES (%s, %s, %s)
+        """
+        cursor.execute(sql_query, (club.club_name, club.club_admin, club.club_description))
+        conn.commit()  # Commit the transaction
+
+        # Closing the connection
+        cursor.close()
+        conn.close()
+
+        return {"message": "Club added successfully!"}
+
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @app.post("/add_event")
 async def add_event(event: Event):
@@ -219,7 +246,7 @@ async def get_user_events(email: str):
     # Fetch events and corresponding club names
     query = f"""
         SELECT e.event_id, e.event_name, e.organizer_name, e.start_date_time, 
-               e.end_date_time, e.location, e.club_id, c.club_name, e.is_payment_done, e.payment_reference
+               e.end_date_time, e.location, e.club_id, c.club_name, e.is_paid_event, e.event_price
         FROM events e 
         JOIN clubs c ON e.club_id = c.club_id
         WHERE e.event_id IN ({format_strings})
@@ -242,8 +269,8 @@ async def get_user_events(email: str):
                 "location": e[5],
                 "club_id": e[6],
                 "club_name": e[7],
-                "is_payment_done": e[8],
-                "payment_reference": e[9]
+                "is_paid_event": e[8],
+                "event_price": e[9]
             }
             for e in events
         ]
@@ -588,63 +615,6 @@ async def register_club(email: str, request: ClubRegistrationRequest):
         cursor.close()
         connection.close()
 
-@app.post("/users/{email}/register_event")
-async def register_event(email: str, payload: EventRegistrationRequest):
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
-    try:
-        # Get user ID
-        cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
-        user = cursor.fetchone()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        user_id = user[0]
-
-        # Check if already registered
-        cursor.execute("SELECT * FROM eventRegistration WHERE user_id = %s AND event_id = %s", (user_id, payload.event_id))
-        if cursor.fetchone():
-            raise HTTPException(status_code=400, detail="Already registered for the event")
-
-        # Check if the event is paid
-        cursor.execute("SELECT is_paid_event, event_price FROM events WHERE event_id = %s", (payload.event_id,))
-        event = cursor.fetchone()
-        if not event:
-            raise HTTPException(status_code=404, detail="Event not found")
-
-        is_paid_event, event_price = event
-
-        # Handle payment logic
-        is_payment_done = False
-        payment_reference = None
-
-        if is_paid_event:
-            if not payload.payment_reference:
-                raise HTTPException(status_code=400, detail="Payment required but no reference provided")
-            is_payment_done = True
-            payment_reference = payload.payment_reference
-
-        # Register user
-        cursor.execute(
-            """
-            INSERT INTO eventRegistration (user_id, event_id, is_payment_done, payment_reference)
-            VALUES (%s, %s, %s, %s)
-            """,
-            (user_id, payload.event_id, is_payment_done, payment_reference)
-        )
-
-        connection.commit()
-        return {"message": "Successfully registered for event"}
-
-    except Exception as e:
-        connection.rollback()
-        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
-    
-    finally:
-        cursor.close()
-        connection.close()
-
-
 # Award points to users when they participate in events
 @app.post("/users/{email}/events/{event_id}/earn_points")
 async def earn_points(email: str, event_id: int):
@@ -704,93 +674,66 @@ async def get_leaderboard():
     
     return [{"name": row[0], "points": row[1]} for row in leaderboard]
 
-@app.get("/events/{event_id}/is_paid")
-async def is_event_paid(event_id: int):
+@app.post("/users/{email}/register_event")
+async def register_event(email: str, payload: EventRegistrationRequest):
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    cursor.execute("SELECT is_paid_event, event_price FROM events WHERE event_id = %s", (event_id,))
-    event = cursor.fetchone()
-
-    cursor.close()
-    connection.close()
-
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-
-    return {"is_paid_event": event[0], "event_price": float(event[1])}
-
-
-# Pay for the event
-@app.post("/pay")
-async def create_payment(payment: PaymentRequest):
     try:
-        # Razorpay takes amount in paise, so multiply by 100
-        razorpay_order = razorpay_client.order.create(dict(
-            amount=payment.amount * 100,
-            currency=payment.currency,
-            receipt=payment.receipt,
-            notes=payment.notes,
-            payment_capture=1  # Auto-capture after payment
-        ))
+        # Step 1: Get user ID
+        cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user_id = user[0]
 
-        return {
-            "order_id": razorpay_order['id'],
-            "amount": razorpay_order['amount'],
-            "currency": razorpay_order['currency']
-        }
+        # Step 2: Check if already registered for the event
+        cursor.execute("SELECT * FROM eventRegistration WHERE user_id = %s AND event_id = %s", (user_id, payload.event_id))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="Already registered for the event")
+
+        # Step 3: Check if the event is paid and fetch event details
+        cursor.execute("SELECT is_paid_event, event_price FROM events WHERE event_id = %s", (payload.event_id,))
+        event = cursor.fetchone()
+        if not event:
+            raise HTTPException(status_code=404, detail="Event not found")
+
+        is_paid_event, event_price = event
+
+        # Step 4: Handle payment logic if event is paid
+        is_payment_done = False
+        payment_reference = None
+
+        if is_paid_event:
+            if not payload.payment_reference:
+                raise HTTPException(status_code=400, detail="Payment required but no reference provided")
+            
+            # For PayPal, we trust the payment reference since we verified it earlier
+            is_payment_done = True
+            payment_reference = payload.payment_reference
+
+        # Step 5: Register the user for the event
+        cursor.execute(
+            """
+            INSERT INTO eventRegistration (user_id, event_id, is_payment_done, payment_reference)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (user_id, payload.event_id, is_payment_done, payment_reference)
+        )
+
+        connection.commit()
+        return {"message": "Successfully registered for event"}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create payment: {str(e)}")
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
     
-# @app.post("/verify_payment")
-# async def verify_payment(request: Request):
-#     data = await request.json()
-
-#     try:
-#         params_dict = {
-#             'razorpay_order_id': data['razorpay_order_id'],
-#             'razorpay_payment_id': data['razorpay_payment_id'],
-#             'razorpay_signature': data['razorpay_signature']
-#         }
-
-#         # Verifies the signature
-#         razorpay_client.utility.verify_payment_signature(params_dict)
-#         return {"status": "Payment verified"}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=f"Payment verification failed: {str(e)}")
-
-class Club(BaseModel):
-    club_name: str
-    club_admin: int
-    club_description: str = ''  # Optional description
-
-@app.post("/add_club")
-async def add_club(club: Club):
-    try:
-        # Establish connection to MySQL
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        # SQL query to insert data into clubs table
-        sql_query = """
-        INSERT INTO clubs (club_name, club_admin, club_description)
-        VALUES (%s, %s, %s)
-        """
-        cursor.execute(sql_query, (club.club_name, club.club_admin, club.club_description))
-        conn.commit()  # Commit the transaction
-
-        # Closing the connection
+    finally:
         cursor.close()
-        conn.close()
-
-        return {"message": "Club added successfully!"}
-
-    except Error as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
+        connection.close()
 
 docker_host = "0.0.0.0"
 local_host = "127.0.0.1"
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app:app", host=local_host, port=8000, reload=True)

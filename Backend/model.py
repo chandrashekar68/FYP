@@ -50,8 +50,11 @@ class EventRegistrationRequest(BaseModel):
     event_id: int
     payment_reference: str = None
 
-class PaymentRequest(BaseModel):
-    amount: int  # in rupees
-    currency: str = "INR"
-    receipt: str
-    notes: dict = {}
+class CreatePaymentRequest(BaseModel):
+    event_id: int
+    user_email: str
+
+class Club(BaseModel):
+    club_name: str
+    club_admin: int
+    club_description: str = ''

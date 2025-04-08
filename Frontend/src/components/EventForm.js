@@ -13,6 +13,8 @@ const EventForm = () => {
     location_type: "virtual",
     location: "",
     max_participants: "",
+    is_paid_event: false,  // New field for is paid event
+    event_price: ""        // New field for event cost
   });
 
   const handleChange = (e) => {
@@ -38,6 +40,8 @@ const EventForm = () => {
         location_type: "virtual",
         location: "",
         max_participants: "",
+        is_paid_event: false,
+        event_price: "",
       });
     } catch (error) {
       alert("Error adding event: " + (error.response?.data?.detail || error.message));
@@ -49,37 +53,113 @@ const EventForm = () => {
       <h2>Add New Event</h2>
       <form onSubmit={handleSubmit}>
         <label>Event Name:</label>
-        <input type="text" name="event_name" value={formData.event_name} onChange={handleChange} required />
+        <input
+          type="text"
+          name="event_name"
+          value={formData.event_name}
+          onChange={handleChange}
+          required
+        />
 
         <label>Organizer Name:</label>
-        <input type="text" name="organizer_name" value={formData.organizer_name} onChange={handleChange} required />
+        <input
+          type="text"
+          name="organizer_name"
+          value={formData.organizer_name}
+          onChange={handleChange}
+          required
+        />
 
         <label>Club ID:</label>
-        <input type="number" name="club_id" value={formData.club_id} onChange={handleChange} required />
+        <input
+          type="number"
+          name="club_id"
+          value={formData.club_id}
+          onChange={handleChange}
+          required
+        />
 
         <label className="checkbox-label">
-          <input type="checkbox" name="is_internal" checked={formData.is_internal} onChange={handleChange} />
+          <input
+            type="checkbox"
+            name="is_internal"
+            checked={formData.is_internal}
+            onChange={handleChange}
+          />
           Internal Event
         </label>
 
         <label>Start Date & Time:</label>
-        <input type="datetime-local" name="start_date_time" value={formData.start_date_time} onChange={handleChange} required />
+        <input
+          type="datetime-local"
+          name="start_date_time"
+          value={formData.start_date_time}
+          onChange={handleChange}
+          required
+        />
 
         <label>End Date & Time:</label>
-        <input type="datetime-local" name="end_date_time" value={formData.end_date_time} onChange={handleChange} required />
+        <input
+          type="datetime-local"
+          name="end_date_time"
+          value={formData.end_date_time}
+          onChange={handleChange}
+          required
+        />
 
         <label>Location Type:</label>
-        <select name="location_type" value={formData.location_type} onChange={handleChange} required>
+        <select
+          name="location_type"
+          value={formData.location_type}
+          onChange={handleChange}
+          required
+        >
           <option value="virtual">Virtual</option>
           <option value="onCampus">On Campus</option>
           <option value="offCampus">Off Campus</option>
         </select>
 
         <label>Location:</label>
-        <input type="text" name="location" value={formData.location} onChange={handleChange} required />
+        <input
+          type="text"
+          name="location"
+          value={formData.location}
+          onChange={handleChange}
+          required
+        />
 
         <label>Max Participants:</label>
-        <input type="number" name="max_participants" value={formData.max_participants} onChange={handleChange} required />
+        <input
+          type="number"
+          name="max_participants"
+          value={formData.max_participants}
+          onChange={handleChange}
+          required
+        />
+
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            name="is_paid_event"
+            checked={formData.is_paid_event}
+            onChange={handleChange}
+          />
+          Paid Event
+        </label>
+
+        {formData.is_paid_event && (
+          <div>
+            <label>Event Price:</label>
+            <input
+              type="number"
+              name="event_price"
+              value={formData.event_price}
+              onChange={handleChange}
+              required={formData.is_paid_event}
+              min="0"
+            />
+          </div>
+        )}
 
         <button type="submit">Add Event</button>
       </form>

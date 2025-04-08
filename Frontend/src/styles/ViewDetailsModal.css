@@ -1,0 +1,33 @@
+.payment-page {
+    padding: 20px;
+    border-top: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .payment-page h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+  
+  .payment-page p {
+    font-size: 1.2rem;
+    margin: 10px 0;
+  }
+  
+  .payment-page button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .payment-page button:hover {
+    background-color: #0056b3;
+  }
+  
