@@ -10,6 +10,8 @@ import ClubRegistration from "./components/ClubRegistration";
 import Header from "./Shared/Header";
 import Footer from "./Shared/Footer";
 import { AuthProvider } from "./context/AuthContext";
+import Profile from './components/Profile';
+import About from "./components/About"; 
 
 function App() {
   const [isBottom, setIsBottom] = useState(false);
@@ -40,6 +42,8 @@ function App() {
           <Route path="/create-profile" element={<CreateProfile />} />
           <Route path="/add-event" element={<EventForm />} />
           <Route path="/club-registration" element={<ClubRegistration />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
         {isBottom && <Footer />}
       </Router>

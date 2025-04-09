@@ -20,10 +20,10 @@ const Signup = () => {
       return;
     }
   
-    // if (!passwordRegex.test(password)) {
-    //   setError("Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, and a number.");
-    //   return;
-    // }
+    if (!passwordRegex.test(password)) {
+      setError("Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, and a number.");
+      return;
+    }
   
     try {
       const { data } = await axios.post("http://localhost:8000/signup", { email, password });
@@ -78,14 +78,16 @@ const Signup = () => {
               />
             </div>
           </div>
-          <div>
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          <div className="form-row">
+            <div className="form-col">
+              <label>Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
           </div>
           <button type="submit">Signup</button>
         </form>

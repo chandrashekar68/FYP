@@ -1,0 +1,53 @@
+/* Profile Page Styles */
+.profile-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f7fc; /* Light background color */
+  }
+  
+  .profile-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for card */
+    width: 350px;
+    padding: 20px;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .profile-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .profile-details {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+    text-align: left;
+  }
+  
+  .profile-details p {
+    margin: 10px 0;
+  }
+  
+  .logout-btn {
+    background-color: #ff4f58; /* Red button for logout */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .logout-btn:hover {
+    background-color: #e13b47; /* Darker red on hover */
+  }
+  
