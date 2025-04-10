@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import EventForm from "./components/EventForm";
 import ClubForm from "./components/ClubForm";
-import CreateProfile from './components/CreateProfile';
-import LandingPage from './components/LandingPage';
+import CreateProfile from "./components/CreateProfile";
+import LandingPage from "./components/LandingPage";
 import ClubRegistration from "./components/ClubRegistration";
 import QrScanner from "./components/QrScanner";
 import Header from "./Shared/Header";
@@ -35,7 +34,7 @@ function App() {
       <Router>
         <Header />
         <Routes>
-          <Route path="/" element={<h1>Healthy</h1>} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<LandingPage />} />
