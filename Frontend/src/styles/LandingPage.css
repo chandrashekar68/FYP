@@ -71,3 +71,25 @@
 .event-card:hover {
     transform: scale(1.05);
 }
+  
+.attended-tag {
+    background-color: #28a745;
+    color: white;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.event-title-div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-attendance-feedback-div{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}

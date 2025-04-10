@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../styles/EventForm.css"; // Ensure correct path
+import "../styles/EventForm.css"; // Make sure this path is correct
 
 const EventForm = () => {
   const [formData, setFormData] = useState({
     event_name: "",
+    event_description: "",
     organizer_name: "",
     club_id: "",
     is_internal: true,
@@ -13,16 +14,26 @@ const EventForm = () => {
     location_type: "virtual",
     location: "",
     max_participants: "",
-    is_paid_event: false,  // New field for is paid event
-    event_price: ""        // New field for event cost
+    is_paid_event: false,
+    event_price: ""
   });
+
+  const [clubs, setClubs] = useState([]);
+
+  // Fetch club list from backend when component mounts
+  useEffect(() => {
+    axios.get("http://localhost:8000/get_clubs")
+      .then(response => setClubs(response.data.clubs))
+      .catch(error => {
+        console.error("Error fetching clubs:", error);
+        setClubs([]);
+      });
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-  
     let newValue = value;
-  
-    // Convert to appropriate types
+
     if (type === "checkbox") {
       newValue = checked;
     } else if (["club_id", "max_participants"].includes(name)) {
@@ -30,31 +41,31 @@ const EventForm = () => {
     } else if (name === "event_price") {
       newValue = parseFloat(value) || 0.0;
     }
-  
-    setFormData({
-      ...formData,
-      [name]: newValue,
-    });
-  };  
+
+    setFormData({ ...formData, [name]: newValue });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const payload = { ...formData };
-  
-      // 👇 Prevent 422: Remove price if event is free
+
+      // Remove price if event is free
       if (!payload.is_paid_event) {
         delete payload.event_price;
       }
 
+      // Ensure location is set if virtual
       if (payload.location_type === "virtual") {
-        payload.location = "virtual"
+        payload.location = "virtual";
       }
-  
+
       const response = await axios.post("http://localhost:8000/add_event", payload);
       alert(response.data.message);
+
       setFormData({
         event_name: "",
+        event_description: "",
         organizer_name: "",
         club_id: "",
         is_internal: true,
@@ -64,12 +75,12 @@ const EventForm = () => {
         location: "",
         max_participants: "",
         is_paid_event: false,
-        event_price: "",
+        event_price: ""
       });
     } catch (error) {
       alert("Error adding event: " + (error.response?.data?.detail || error.message));
     }
-  };  
+  };
 
   return (
     <div className="event-form-container">
@@ -84,6 +95,15 @@ const EventForm = () => {
           required
         />
 
+        <label>Event Description:</label>
+        <input
+          type="text"
+          name="event_description"
+          value={formData.event_description}
+          onChange={handleChange}
+          required
+        />
+
         <label>Organizer Name:</label>
         <input
           type="text"
@@ -93,14 +113,20 @@ const EventForm = () => {
           required
         />
 
-        <label>Club ID:</label>
-        <input
-          type="number"
+        <label>Select Club:</label>
+        <select
           name="club_id"
           value={formData.club_id}
           onChange={handleChange}
           required
-        />
+        >
+          <option value="">-- Select a club --</option>
+          {clubs.map((club) => (
+            <option key={club.club_id} value={club.club_id}>
+              {club.club_name}
+            </option>
+          ))}
+        </select>
 
         <label className="checkbox-label">
           <input
@@ -143,16 +169,16 @@ const EventForm = () => {
         </select>
 
         {formData.location_type !== "virtual" && (
-        <>
-          <label>Location:</label>
-          <input
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-          />
-        </>
+          <>
+            <label>Location:</label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+            />
+          </>
         )}
 
         <label>Max Participants:</label>

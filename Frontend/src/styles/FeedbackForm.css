@@ -1,0 +1,56 @@
+.inline-feedback-box {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .stars {
+    margin-bottom: 10px;
+  }
+  
+  .star {
+    font-size: 26px;
+    cursor: pointer;
+    color: #ccc;
+    margin-right: 4px;
+    transition: color 0.2s ease;
+  }
+  
+  .star.filled {
+    color: #f4c542;
+  }
+  
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    resize: vertical;
+    font-size: 14px;
+  }
+  
+  .submit-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .submit-btn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+  }
+  
+  .feedback-msg {
+    margin-top: 8px;
+    color: green;
+    font-size: 0.9rem;
+  }
+  

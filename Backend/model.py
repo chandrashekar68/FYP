@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from enum import Enum
 
 class UserAuth(BaseModel):
@@ -20,10 +20,6 @@ class UserProfile(BaseModel):
 class TokenRequest(BaseModel):
     token: str
 
-class Club(BaseModel):
-    id: int
-    name: str
-
 class Location(str, Enum):
     VIRTUAL = "virtual"
     ONCAMPUS = "onCampus"
@@ -41,6 +37,7 @@ class Event(BaseModel):
     max_participants: int
     is_paid_event: Optional[bool] = False
     event_price: Optional[float] = 0.00
+    event_description: str
 
 class ClubRegistrationRequest(BaseModel):
     club_id: int  # Integer ID of the club
@@ -56,5 +53,10 @@ class CreatePaymentRequest(BaseModel):
 
 class Club(BaseModel):
     club_name: str
-    club_admin: int
+    club_admin: str
     club_description: str = ''
+
+class FeedbackRequest(BaseModel):
+    event_id: int
+    rating: int = Field(..., ge=1, le=5)
+    comments: str = ""

@@ -87,7 +87,7 @@ const ViewDetailsModal = ({ isOpen, toggle, event, userEmail }) => {
         <p><strong>Start:</strong> {new Date(event.start_date).toLocaleString()}</p>
         <p><strong>End:</strong> {new Date(event.end_date).toLocaleString()}</p>
         <p><strong>Location:</strong> {event.location}</p>
-        <p><strong>Description:</strong> {event.description}</p>
+        <p><strong>Description:</strong> {event.event_description}</p>
         <p><strong>Event Price:</strong> {event.event_price > 0 ? `$${event.event_price}` : "Free"}</p>
 
         {paymentError && (

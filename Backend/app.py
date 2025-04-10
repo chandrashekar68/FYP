@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import uvicorn
-from model import UserAuth, UserProfile, TokenRequest, Event, ClubRegistrationRequest, EventRegistrationRequest, Club
+from model import UserAuth, UserProfile, TokenRequest, Event, ClubRegistrationRequest, EventRegistrationRequest, Club, FeedbackRequest
 from connection import get_db_connection
 from smtp_config import send_email_for_added_event, send_email_for_event_registration
 import os
@@ -15,6 +15,7 @@ from typing import List
 from paypal import router as paypal_router
 from gamification import award_points, router as gamification_router
 from qr import generate_qr_token, router as qr_router
+from datetime import datetime
 
 
 app = FastAPI()
@@ -43,12 +44,15 @@ async def add_club(club: Club):
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        cursor.execute("SELECT user_id FROM users WHERE user_name = %s", (club.club_admin,))
+        club_admin_id = cursor.fetchone()[0]
+
         # SQL query to insert data into clubs table
         sql_query = """
         INSERT INTO clubs (club_name, club_admin, club_description)
         VALUES (%s, %s, %s)
         """
-        cursor.execute(sql_query, (club.club_name, club.club_admin, club.club_description))
+        cursor.execute(sql_query, (club.club_name, club_admin_id, club.club_description))
         conn.commit()  # Commit the transaction
 
         return {"message": "Club added successfully!"}
@@ -65,60 +69,54 @@ async def add_event(event: Event):
     cursor = connection.cursor()
 
     try:
-        # ✅ Insert event into the database
+        club_id = event.club_id
+
         cursor.execute(
             """
             INSERT INTO events (
                 event_name, organizer_name, club_id, is_internal, start_date_time, 
                 end_date_time, location_type, location, max_participants,
-                is_paid_event, event_price
+                is_paid_event, event_price, event_description
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
-                event.event_name, event.organizer_name, event.club_id, event.is_internal, 
+                event.event_name, event.organizer_name, club_id, event.is_internal, 
                 event.start_date_time, event.end_date_time, event.location_type, 
                 event.location, event.max_participants,
-                event.is_paid_event, event.event_price
+                event.is_paid_event, event.event_price, event.event_description
             )
         )
-        event_id = cursor.lastrowid  # Get the new event ID
+        event_id = cursor.lastrowid
         connection.commit()
 
-        # ✅ Fetch club name
-        cursor.execute("SELECT club_name FROM clubs WHERE club_id = %s", (event.club_id,))
+        # Fetch club name for notification
+        cursor.execute("SELECT club_name FROM clubs WHERE club_id = %s", (club_id,))
         club = cursor.fetchone()
         if not club:
             raise HTTPException(status_code=404, detail="Club not found")
-        club_name = club[0]  # Use index-based access
+        club_name = club[0]
 
-        # ✅ Fetch users subscribed to the club
+        # Notify users
         cursor.execute("""
-                SELECT users.user_id, users.email 
-                FROM users 
-                INNER JOIN user_clubs ON users.user_id = user_clubs.user_id
-                WHERE user_clubs.club_id = %s
-            """, (event.club_id,))
+            SELECT users.user_id, users.email 
+            FROM users 
+            INNER JOIN user_clubs ON users.user_id = user_clubs.user_id
+            WHERE user_clubs.club_id = %s
+        """, (club_id,))
         users = cursor.fetchall()
 
-        # ✅ Check if users exist
         if not users:
             return {"message": f"Event '{event.event_name}' added, but no users to notify."}
 
-        # Insert notifications & send emails
         for user_id, email in users:
             message = f"{club_name} has added a new event!\n{event.event_name}. Check your email for QR Code which should be shown during attendance"
-
-            # ✅ Fix missing 'title' column in notifications
-            cursor.execute(
-                """
+            cursor.execute("""
                 INSERT INTO notifications (user_id, event_id, title, message, notification_type, is_read)
                 VALUES (%s, %s, %s, %s, %s, %s)
-                """,
-                (user_id, event_id, event.event_name, message, "eventUpdate", False)
-            )
+            """, (user_id, event_id, event.event_name, message, "eventUpdate", False))
 
-            send_email_for_added_event(email, club_name, event.event_name)  # Send email notification
+            send_email_for_added_event(email, club_name, event.event_name)
 
         connection.commit()
         return {"message": f"Event '{event.event_name}' added & notifications sent!"}
@@ -236,26 +234,18 @@ async def get_user_events(email: str):
         raise HTTPException(status_code=404, detail="User not found")
     user_id = user[0]
 
-    # Fetch event IDs where the user is registered
-    cursor.execute("SELECT event_id FROM eventRegistration WHERE user_id = %s", (user_id,))
-    event_ids = [row[0] for row in cursor.fetchall()]
-    
-    if not event_ids:
-        return {"message": "No registered events", "events": []}
-
-    # Convert list into a tuple for safe SQL execution
-    format_strings = ','.join(['%s'] * len(event_ids))
-
-    # Fetch events and corresponding club names
-    query = f"""
+    # Get all event details joined with registration and club
+    query = """
         SELECT e.event_id, e.event_name, e.organizer_name, e.start_date_time, 
-               e.end_date_time, e.location, e.club_id, c.club_name, e.is_paid_event, e.event_price
+               e.end_date_time, e.location, e.club_id, c.club_name, e.is_paid_event, 
+               e.event_price, e.event_description, er.user_event_status
         FROM events e 
         JOIN clubs c ON e.club_id = c.club_id
-        WHERE e.event_id IN ({format_strings})
+        JOIN eventRegistration er ON e.event_id = er.event_id
+        WHERE er.user_id = %s
     """
 
-    cursor.execute(query, tuple(event_ids))
+    cursor.execute(query, (user_id,))
     events = cursor.fetchall()
 
     cursor.close()
@@ -273,7 +263,9 @@ async def get_user_events(email: str):
                 "club_id": e[6],
                 "club_name": e[7],
                 "is_paid_event": e[8],
-                "event_price": e[9]
+                "event_price": e[9],
+                "event_description": e[10],
+                "user_event_status": e[11]
             }
             for e in events
         ]
@@ -331,7 +323,7 @@ async def get_available_events(email: str):
     format_strings = ','.join(['%s'] * len(club_ids))
     query = f"""
         SELECT e.event_id, e.event_name, e.organizer_name, e.start_date_time, 
-               e.end_date_time, e.location, e.club_id, c.club_name, e.is_paid_event, e.event_price
+               e.end_date_time, e.location, e.club_id, c.club_name, e.is_paid_event, e.event_price, e.event_description
         FROM events e 
         JOIN clubs c ON e.club_id = c.club_id
         WHERE e.club_id IN ({format_strings})
@@ -354,7 +346,8 @@ async def get_available_events(email: str):
             "club_id": event[6],
             "club_name": event[7],
             "is_paid_event": event[8],
-            "event_price": float(event[9])
+            "event_price": float(event[9]),
+            "event_description": event[10]
         }
         for event in events
     ]
@@ -716,7 +709,7 @@ async def register_event(email: str, payload: EventRegistrationRequest):
 
         # Step 5: Generate QR token if offline event
         qr_token = None
-        if location_type == "virtual":
+        if location_type != "virtual":
             try:
                 qr_token = generate_qr_token(user_id, payload.event_id)
             except Exception:
@@ -751,6 +744,80 @@ async def register_event(email: str, payload: EventRegistrationRequest):
     finally:
         cursor.close()
         connection.close()
+
+@app.post("/users/{email}/submit_feedback")
+async def submit_feedback(email: str, request: FeedbackRequest):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Get user_id from email
+        cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user_id = user[0]
+
+        # Check if user is registered for the event
+        cursor.execute(
+            "SELECT * FROM eventRegistration WHERE user_id = %s AND event_id = %s",
+            (user_id, request.event_id),
+        )
+        registration = cursor.fetchone()
+        if not registration:
+            raise HTTPException(status_code=400, detail="User not registered for this event")
+        
+        cursor.execute(
+            "SELECT * FROM feedback WHERE user_id = %s AND event_id = %s",
+            (user_id, request.event_id)
+        )
+        if cursor.fetchone():
+            raise HTTPException(status_code=409, detail="Feedback already submitted.")
+
+
+        # Insert feedback with formatted datetime
+        feedback_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        cursor.execute(
+            """
+            INSERT INTO feedback (user_id, event_id, rating, comments, feedback_date)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (user_id, request.event_id, request.rating, request.comments, feedback_date),
+        )
+
+        # Get event name safely
+        cursor.execute("SELECT event_name FROM events WHERE event_id = %s", (request.event_id,))
+        event_name = cursor.fetchone()
+        event_name_str = event_name[0] if event_name else "Unknown Event"
+
+        connection.commit()
+
+        return {"message": f"Feedback submitted successfully for event {event_name_str}"}
+
+    except Exception as e:
+        connection.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    finally:
+        cursor.close()
+        connection.close()
+
+@app.get("/get_clubs")
+def get_clubs():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT club_id, club_name FROM clubs")
+        clubs = cursor.fetchall()
+
+        return {"clubs": clubs}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
 
 docker_host = "0.0.0.0"
 local_host = "127.0.0.1"
