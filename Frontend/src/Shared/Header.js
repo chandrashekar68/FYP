@@ -73,6 +73,7 @@ const Header = () => {
       </div>
       <nav className="right">
         <ul>
+          
           <li><Notification /></li>
 
           {/* Show Register to Club Button for Logged-in Users */}
@@ -89,6 +90,14 @@ const Header = () => {
             <li>
               <button className="create-event-btn" onClick={() => navigate('/add-event')}>
                 Create Event
+              </button>
+            </li>
+          )}
+          
+          {isLoggedIn && (userRole === "Supervisor") && (
+            <li>
+              <button className="create-event-btn" onClick={() => navigate('/add-club')}>
+                Add a Club
               </button>
             </li>
           )}

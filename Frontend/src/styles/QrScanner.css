@@ -1,0 +1,61 @@
+.scanner-container {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 20px 30px;
+    border-radius: 10px;
+    background-color: #fdfdfd;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .scanner-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .scanner-webcam {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+  }
+  
+  button:hover:not(:disabled) {
+    background-color: #005bb5;
+  }
+  
+  .confirmation {
+    margin-top: 15px;
+    font-size: 1rem;
+    padding: 10px;
+    border-radius: 6px;
+  }
+  
+  .confirmation.success {
+    background-color: #e6ffec;
+    color: #218838;
+    border: 1px solid #b2f2bb;
+  }
+  
+  .confirmation.error {
+    background-color: #fff3f3;
+    color: #d93025;
+    border: 1px solid #f5c2c2;
+  }
+  

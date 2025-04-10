@@ -1,5 +1,5 @@
 
-DROP DATABASE IF EXISTS event_management_db;
+-- DROP DATABASE IF EXISTS event_management_db;
 
 CREATE DATABASE event_management_db;
 
@@ -44,8 +44,8 @@ CREATE TABLE events (
     location_type ENUM('virtual', 'onCampus', 'offCampus') NOT NULL,
     location VARCHAR(200),
     max_participants INT NOT NULL,
-    is_paid_event BOOLEAN DEFAULT FALSE,  -- Added the is_paid_event column here
-    event_price DECIMAL(10,2) DEFAULT 0.00,  -- Added the event_price column here
+    is_paid_event BOOLEAN DEFAULT FALSE,
+    event_price DECIMAL(10,2) DEFAULT 0.00,
     FOREIGN KEY (club_id) REFERENCES clubs(club_id)
 );
 
@@ -59,6 +59,8 @@ CREATE TABLE eventRegistration (
     ticket_price DECIMAL(10,2) DEFAULT 0.00,
     is_payment_done BOOLEAN DEFAULT FALSE,  -- Added is_payment_done column here
     payment_reference VARCHAR(100) DEFAULT NULL,  -- Added payment_reference column here
+    user_event_status ENUM('registered', 'attended') DEFAULT 'registered',
+    qr_token VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (event_id) REFERENCES events(event_id)
 );
@@ -83,16 +85,6 @@ CREATE TABLE feedback (
     rating INT CHECK (rating BETWEEN 1 AND 5),
     comments TEXT,
     feedback_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (event_id) REFERENCES events(event_id)
-);
-
-CREATE TABLE event_points (
-    user_id INT NOT NULL,
-    event_id INT NOT NULL,
-    points INT NOT NULL DEFAULT 0,
-    earned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, event_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (event_id) REFERENCES events(event_id)
 );
@@ -152,7 +144,7 @@ INSERT INTO events (event_name, organizer_name, club_id, is_internal, start_date
 
 INSERT INTO eventRegistration (user_id, event_id, status, ticket_type, ticket_price, is_payment_done, payment_reference) VALUES
 (2, 1, 'confirmed', 'free', 0.00, FALSE, NULL),
-(2, 2, 'confirmed', 'paid', 500.00, TRUE, 'PAY1234'),
+(2, 2, 'confirmed', 'paid', 1.00, TRUE, 'PAY1234'),
 (3, 3, 'confirmed', 'paid', 300.00, TRUE, 'PAY5678'),
 (4, 2, 'waitlisted', 'free', 0.00, FALSE, NULL),
 (5, 4, 'confirmed', 'free', 0.00, FALSE, NULL),
@@ -175,31 +167,19 @@ INSERT INTO feedback (user_id, event_id, rating, comments) VALUES
 (5, 4, 5, 'Excellent workshop! Learned a lot about photography!'),
 (1, 2, 4, 'The seminar was informative but could be more interactive.');
 
-INSERT INTO event_points (user_id, event_id, points) VALUES
-(1, 1, 10),
-(2, 2, 15),
-(2, 3, 20),
-(3, 5, 30),
-(4, 6, 25),
-(5, 4, 10);
-
 INSERT INTO badges (badge_name, badge_description, icon_url) VALUES
-('Event Enthusiast', 'Attended 5 events', 'https://example.com/event_enthusiast.png'),
-('Super Organizer', 'Organized 3 events', 'https://example.com/super_organizer.png'),
-('Tech Guru', 'Attended 3 tech-related events', 'https://example.com/tech_guru.png'),
-('Event Master', 'Attended 10 events', 'https://example.com/event_master.png'),
-('Coding Ninja', 'Participated in 5 coding events', 'https://example.com/coding_ninja.png'),
-('Green Champion', 'Attended 3 sustainability events', 'https://example.com/green_champion.png'),
-('Creative Mind', 'Attended 3 creative events', 'https://example.com/creative_mind.png');
+('Rookie Star', 'Earned after scoring 50 points.', NULL),
+('Rising Achiever', 'Earned after scoring 100 points.', NULL),
+('Campus Champion', 'Earned after scoring 250 points.', NULL),
+('Legend of Events', 'Earned after scoring 500 points.', NULL),
+('Eternal Icon', 'Earned after scoring 1000 points.', NULL);
 
 INSERT INTO user_badges (user_id, badge_id) VALUES
 (1, 1),
 (2, 2),
 (3, 3),
 (4, 4),
-(2, 5),
-(3, 6),
-(4, 7);
+(2, 5);
 
 INSERT INTO user_clubs (user_id, club_id) VALUES
 (1, 1), -- Pratham -> AI & Robotics Club
@@ -235,8 +215,6 @@ SELECT * FROM notifications;
 
 SELECT * FROM feedback;
 
-SELECT * FROM event_points;
-
 SELECT * FROM badges;
 
 SELECT * FROM user_badges;
@@ -244,5 +222,3 @@ SELECT * FROM user_badges;
 SELECT * FROM leaderboard;
 
 COMMIT;
-
-

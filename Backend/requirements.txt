@@ -4,4 +4,12 @@ pydantic
 python-dotenv
 requests
 mysql-connector-python
-razorpay
+paypalrestsdk
+pyzbar
+opencv-python
+pillow
+qrcode
+python-multipart
+Flask
+flask-cors
+openai

@@ -1,2 +1,5 @@
 .env
 test.py
+__pycache__/
+*.py[cod]
+qr_codes/

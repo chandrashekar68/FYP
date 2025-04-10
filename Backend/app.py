@@ -5,13 +5,17 @@ from pydantic import BaseModel
 import uvicorn
 from model import UserAuth, UserProfile, TokenRequest, Event, ClubRegistrationRequest, EventRegistrationRequest, Club
 from connection import get_db_connection
-from smtp_config import send_email
+from smtp_config import send_email_for_added_event, send_email_for_event_registration
 import os
 import hashlib
 import requests
+import random
+import string
 from typing import List
-import razorpay
 from paypal import router as paypal_router
+from gamification import award_points, router as gamification_router
+from qr import generate_qr_token, router as qr_router
+
 
 app = FastAPI()
 
@@ -23,10 +27,10 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+# Include sub routes
 app.include_router(paypal_router, tags=["PayPal"])
-
-# Razorpay client initialization
-razorpay_client = razorpay.Client(auth=("RAZORPAY_KEY_ID", "RAZORPAY_SECRET_KEY"))
+app.include_router(gamification_router)
+app.include_router(qr_router)
 
 @app.get("/")
 def home():
@@ -47,14 +51,13 @@ async def add_club(club: Club):
         cursor.execute(sql_query, (club.club_name, club.club_admin, club.club_description))
         conn.commit()  # Commit the transaction
 
-        # Closing the connection
-        cursor.close()
-        conn.close()
-
         return {"message": "Club added successfully!"}
 
-    except Error as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.post("/add_event")
 async def add_event(event: Event):
@@ -104,7 +107,7 @@ async def add_event(event: Event):
 
         # Insert notifications & send emails
         for user_id, email in users:
-            message = f"{club_name} has added a new event!\n{event.event_name}"
+            message = f"{club_name} has added a new event!\n{event.event_name}. Check your email for QR Code which should be shown during attendance"
 
             # ✅ Fix missing 'title' column in notifications
             cursor.execute(
@@ -115,7 +118,7 @@ async def add_event(event: Event):
                 (user_id, event_id, event.event_name, message, "eventUpdate", False)
             )
 
-            send_email(email, club_name, event.event_name)  # Send email notification
+            send_email_for_added_event(email, club_name, event.event_name)  # Send email notification
 
         connection.commit()
         return {"message": f"Event '{event.event_name}' added & notifications sent!"}
@@ -415,15 +418,16 @@ async def login(user: UserAuth):
 async def create_user_profile(request: UserProfile):
     body = request.dict()
 
-    # Extract data from request body
     usn = body.get("usn")
     username = body.get("username")
     role = body.get("role")
     clubName = body.get("clubName")
     email = body.get("email")
 
-    # if not all([usn, username, role, email]):
-    #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing required fields")
+    # Generate a random USN for organizer/supervisor if not provided
+    if role in ["Organizer", "Supervisor"] and (not usn or usn.strip() == ""):
+        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        usn = f"{role[:3].upper()}-{random_suffix}"
 
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -450,7 +454,6 @@ async def create_user_profile(request: UserProfile):
     connection.close()
 
     return {"message": "Profile updated successfully"}
-    
 
 
 # Google OAuth Login
@@ -638,6 +641,7 @@ async def earn_points(email: str, event_id: int):
     
     return {"message": f"User {email} earned {points} points for attending event {event_id}"}
 
+
 # Get user points & badges
 @app.get("/users/{email}/gamification")
 async def get_user_gamification(email: str):
@@ -692,36 +696,52 @@ async def register_event(email: str, payload: EventRegistrationRequest):
         if cursor.fetchone():
             raise HTTPException(status_code=400, detail="Already registered for the event")
 
-        # Step 3: Check if the event is paid and fetch event details
-        cursor.execute("SELECT is_paid_event, event_price FROM events WHERE event_id = %s", (payload.event_id,))
+        # Step 3: Check event details
+        cursor.execute("SELECT is_paid_event, event_price, location_type FROM events WHERE event_id = %s", (payload.event_id,))
         event = cursor.fetchone()
         if not event:
             raise HTTPException(status_code=404, detail="Event not found")
 
-        is_paid_event, event_price = event
+        is_paid_event, event_price, location_type = event
 
-        # Step 4: Handle payment logic if event is paid
+        # Step 4: Payment logic
         is_payment_done = False
         payment_reference = None
 
         if is_paid_event:
             if not payload.payment_reference:
                 raise HTTPException(status_code=400, detail="Payment required but no reference provided")
-            
-            # For PayPal, we trust the payment reference since we verified it earlier
             is_payment_done = True
             payment_reference = payload.payment_reference
 
-        # Step 5: Register the user for the event
+        # Step 5: Generate QR token if offline event
+        qr_token = None
+        if location_type == "virtual":
+            try:
+                qr_token = generate_qr_token(user_id, payload.event_id)
+            except Exception:
+                raise HTTPException(status_code=500, detail="QR generation failed")
+
+
+        # Step 6: Insert into registration table
         cursor.execute(
             """
-            INSERT INTO eventRegistration (user_id, event_id, is_payment_done, payment_reference)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO eventRegistration (user_id, event_id, is_payment_done, payment_reference, qr_token)
+            VALUES (%s, %s, %s, %s, %s)
             """,
-            (user_id, payload.event_id, is_payment_done, payment_reference)
+            (user_id, payload.event_id, is_payment_done, payment_reference, qr_token)
         )
-
         connection.commit()
+
+        # Step 7: Send confirmation email with QR (if generated)
+        send_email_for_event_registration(email, user_id, payload.event_id, qr_token)
+
+        try:
+            result = award_points(user_id, payload.event_id)
+            print(result["message"])
+        except Exception as e:
+            print("Points awarding failed:", str(e))
+
         return {"message": "Successfully registered for event"}
 
     except Exception as e:
@@ -736,4 +756,4 @@ docker_host = "0.0.0.0"
 local_host = "127.0.0.1"
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host=local_host, port=8000, reload=True)
+    uvicorn.run("app:app", host=docker_host, port=8000, reload=True)

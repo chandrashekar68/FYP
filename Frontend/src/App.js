@@ -4,9 +4,11 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import EventForm from "./components/EventForm";
+import ClubForm from "./components/ClubForm";
 import CreateProfile from './components/CreateProfile';
 import LandingPage from './components/LandingPage';
 import ClubRegistration from "./components/ClubRegistration";
+import QrScanner from "./components/QrScanner";
 import Header from "./Shared/Header";
 import Footer from "./Shared/Footer";
 import { AuthProvider } from "./context/AuthContext";
@@ -39,7 +41,9 @@ function App() {
           <Route path="/dashboard" element={<LandingPage />} />
           <Route path="/create-profile" element={<CreateProfile />} />
           <Route path="/add-event" element={<EventForm />} />
+          <Route path="/add-club" element={<ClubForm />} />
           <Route path="/club-registration" element={<ClubRegistration />} />
+          <Route path="/qr-scanner" element={<QrScanner />} />
         </Routes>
         {isBottom && <Footer />}
       </Router>

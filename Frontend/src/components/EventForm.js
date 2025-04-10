@@ -19,16 +19,39 @@ const EventForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+  
+    let newValue = value;
+  
+    // Convert to appropriate types
+    if (type === "checkbox") {
+      newValue = checked;
+    } else if (["club_id", "max_participants"].includes(name)) {
+      newValue = parseInt(value, 10) || 0;
+    } else if (name === "event_price") {
+      newValue = parseFloat(value) || 0.0;
+    }
+  
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: newValue,
     });
-  };
+  };  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:8000/add_event", formData);
+      const payload = { ...formData };
+  
+      // 👇 Prevent 422: Remove price if event is free
+      if (!payload.is_paid_event) {
+        delete payload.event_price;
+      }
+
+      if (payload.location_type === "virtual") {
+        payload.location = "virtual"
+      }
+  
+      const response = await axios.post("http://localhost:8000/add_event", payload);
       alert(response.data.message);
       setFormData({
         event_name: "",
@@ -46,7 +69,7 @@ const EventForm = () => {
     } catch (error) {
       alert("Error adding event: " + (error.response?.data?.detail || error.message));
     }
-  };
+  };  
 
   return (
     <div className="event-form-container">
@@ -119,14 +142,18 @@ const EventForm = () => {
           <option value="offCampus">Off Campus</option>
         </select>
 
-        <label>Location:</label>
-        <input
-          type="text"
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          required
-        />
+        {formData.location_type !== "virtual" && (
+        <>
+          <label>Location:</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            required
+          />
+        </>
+        )}
 
         <label>Max Participants:</label>
         <input
