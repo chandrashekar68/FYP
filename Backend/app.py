@@ -635,20 +635,26 @@ async def get_user_gamification(email: str):
     cursor = connection.cursor()
     
     # Get user details
-    cursor.execute("SELECT user_id, points FROM users WHERE email = %s", (email,))
+    cursor.execute("SELECT user_id, total_points FROM users WHERE email = %s", (email,))
     user = cursor.fetchone()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     user_id, points = user
     
-    # Fetch user badges
-    cursor.execute("SELECT badge_name FROM badges WHERE user_id = %s", (user_id,))
+    # Fetch user badges correctly using join
+    cursor.execute("""
+        SELECT b.badge_name 
+        FROM badges b
+        INNER JOIN user_badges ub ON b.badge_id = ub.badge_id
+        WHERE ub.user_id = %s
+    """, (user_id,))
     badges = [row[0] for row in cursor.fetchall()]
     
     cursor.close()
     connection.close()
     
     return {"points": points, "badges": badges}
+
 
 # Get global leaderboard
 @app.get("/leaderboard", response_model=List[dict])
@@ -811,6 +817,9 @@ def get_clubs():
     finally:
         cursor.close()
         conn.close()
+
+
+
 
 docker_host = "0.0.0.0"
 local_host = "127.0.0.1"

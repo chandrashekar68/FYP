@@ -5,6 +5,7 @@ import girlImage from "../assets/girl.png";
 import { ReactComponent as SubmenuIcon } from "../assets/submenu-icon.svg";
 import { useNavigate } from "react-router-dom";
 import Notification from "../components/Notification";
+import ProfileModal from "../components/ProfileModal";
 
 const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -14,6 +15,7 @@ const Header = () => {
 
   const navigate = useNavigate();
   const sideDrawerRef = useRef(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
@@ -112,7 +114,7 @@ const Header = () => {
               <img src={girlImage} alt="Profile" className="profile-photo" />
               {showProfileMenu && (
                 <div className="profile-menu">
-                  <p onClick={() => navigate("/profile")}>View Profile</p>
+                  <p onClick={() => setShowProfileModal(true)}>View Profile</p>
                   <p onClick={handleLogout}>Logout</p>
                 </div>
               )}
@@ -131,6 +133,7 @@ const Header = () => {
           {!isLoggedIn && <li onClick={handleLoginClick}>Login</li>}
         </ul>
       </div>
+      <ProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </header>
   );
 };

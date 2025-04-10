@@ -1,8 +1,11 @@
+
 DROP DATABASE IF EXISTS event_management_db;
 
 CREATE DATABASE event_management_db;
 
 USE event_management_db;
+
+-- CREATE TABLE STATEMENTS
 
 CREATE TABLE users( 
     user_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,8 +46,10 @@ CREATE TABLE events (
     max_participants INT NOT NULL,
     is_paid_event BOOLEAN DEFAULT FALSE,
     event_price DECIMAL(10,2) DEFAULT 0.00,
+    event_description TEXT,
     FOREIGN KEY (club_id) REFERENCES clubs(club_id)
 );
+
 
 CREATE TABLE eventRegistration (
     registration_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -61,6 +66,13 @@ CREATE TABLE eventRegistration (
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (event_id) REFERENCES events(event_id)
 );
+
+-- drop table eventRegistration;
+-- drop table notifications;
+-- drop table events;
+-- drop table event_points;
+-- drop table feedback;
+
 
 CREATE TABLE notifications (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -108,6 +120,8 @@ FROM users
 ORDER BY total_points DESC
 LIMIT 10;
 
+ -- INSERT STATEMENTS
+
 INSERT INTO clubs (club_name, club_admin, club_description) VALUES
 ('AI & Robotics Club', 101, 'A club dedicated to AI, machine learning, and robotics.'),
 ('Cybersecurity Club', 102, 'Focuses on ethical hacking, security research, and workshops.'),
@@ -129,13 +143,23 @@ INSERT INTO users (user_name, usn, password_hash, email, role, total_points) VAL
 ('David', 'USN8', 'hashed_password8', 'david@example.com', 'Student', 80),
 ('Ella', 'USN9', 'hashed_password9', 'ella@example.com', 'Student', 90);
 
-INSERT INTO events (event_name, organizer_name, club_id, is_internal, start_date_time, end_date_time, location_type, location, max_participants, is_paid_event, event_price) VALUES
-('AI & ML Workshop', 'AI & Robotics Club', 1, TRUE, '2024-03-10 10:00:00', '2024-03-10 12:00:00', 'onCampus', 'Auditorium A', 100, FALSE, 0.00),
-('Robotics Hackathon', 'AI & Robotics Club', 1, TRUE, '2024-03-15 09:00:00', '2024-03-15 11:00:00', 'onCampus', 'Tech Lab', 100, TRUE, 1.00),
-('Music Concert', 'Music & Performing Arts Club', 5, TRUE, '2024-04-01 18:00:00', '2024-04-01 20:00:00', 'onCampus', 'Auditorium B', 200, FALSE, 0.00),
-('Environmental Awareness Seminar', 'Environmental Club', 6, TRUE, '2024-04-10 09:00:00', '2024-04-10 11:00:00', 'onCampus', 'Conference Room A', 100, FALSE, 0.00),
-('Hackathon Challenge', 'Coding Club', 7, TRUE, '2024-04-12 08:00:00', '2024-04-13 20:00:00', 'onCampus', 'Lab 3', 150, TRUE, 300.00),
-('Photography Workshop', 'Photography Club', 8, TRUE, '2024-04-15 10:00:00', '2024-04-15 12:00:00', 'onCampus', 'Room 201', 50, FALSE, 0.00);
+INSERT INTO events (
+    event_name, organizer_name, club_id, is_internal, start_date_time, end_date_time,
+    location_type, location, max_participants, is_paid_event, event_price, event_description
+) VALUES
+('AI & ML Workshop', 'AI & Robotics Club', 1, TRUE, '2024-03-10 10:00:00', '2024-03-10 12:00:00', 'onCampus', 'Auditorium A', 100, FALSE, 0.00, 'An introductory workshop on Artificial Intelligence and Machine Learning concepts.'),
+('Robotics Hackathon', 'AI & Robotics Club', 1, TRUE, '2024-03-15 09:00:00', '2024-03-15 11:00:00', 'onCampus', 'Tech Lab', 100, TRUE, 500.00, 'A 2-hour hackathon focused on building robotics-based solutions.'),
+('Music Concert', 'Music & Performing Arts Club', 5, TRUE, '2024-04-01 18:00:00', '2024-04-01 20:00:00', 'onCampus', 'Auditorium B', 200, FALSE, 0.00, 'A live concert featuring student performances across various genres.'),
+('Environmental Awareness Seminar', 'Environmental Club', 6, TRUE, '2024-04-10 09:00:00', '2024-04-10 11:00:00', 'onCampus', 'Conference Room A', 100, FALSE, 0.00, 'A seminar to raise awareness about environmental issues and sustainability.'),
+('Hackathon Challenge', 'Coding Club', 7, TRUE, '2024-04-12 08:00:00', '2024-04-13 20:00:00', 'onCampus', 'Lab 3', 150, TRUE, 300.00, 'A 2-day hackathon to test your coding skills and innovation.'),
+('Photography Workshop', 'Photography Club', 8, TRUE, '2024-04-15 10:00:00', '2024-04-15 12:00:00', 'onCampus', 'Room 201', 50, FALSE, 0.00, 'Learn photography tips and techniques from professionals and enthusiasts.'),
+('Cybersecurity Bootcamp', 'Cybersecurity Club', 2, TRUE, '2024-05-01 09:00:00', '2024-05-03 17:00:00', 'onCampus', 'Security Lab', 80, TRUE, 250.00, 'A 3-day intensive training on cybersecurity fundamentals, tools, and techniques.'),
+('Art Exhibition', 'Art & Culture Club', 3, TRUE, '2024-05-05 10:00:00', '2024-05-05 17:00:00', 'onCampus', 'Exhibition Hall', 150, FALSE, 0.00, 'A showcase of student artwork, paintings, and creative expressions.'),
+('Tech Talk: Future of AI', 'Tech Innovators', 4, TRUE, '2024-05-10 14:00:00', '2024-05-10 16:00:00', 'virtual', 'Zoom Link', 300, FALSE, 0.00, 'A virtual tech talk discussing trends, ethics, and breakthroughs in AI.'),
+('Sustainability Drive', 'Environmental Club', 6, TRUE, '2024-05-12 08:00:00', '2024-05-12 12:00:00', 'onCampus', 'Campus Grounds', 200, FALSE, 0.00, 'An eco-friendly event involving plantation, recycling, and awareness campaigns.'),
+('Coding 101 Workshop', 'Coding Club', 7, TRUE, '2024-05-15 10:00:00', '2024-05-15 13:00:00', 'onCampus', 'Lab 1', 100, FALSE, 0.00, 'Beginner-friendly session to learn the basics of programming in Python.'),
+('Acoustic Night', 'Music & Performing Arts Club', 5, TRUE, '2024-05-20 18:30:00', '2024-05-20 21:00:00', 'onCampus', 'Amphitheatre', 250, FALSE, 0.00, 'A relaxed evening with acoustic performances from students and guests.');
+
 
 INSERT INTO eventRegistration (user_id, event_id, status, ticket_type, ticket_price, is_payment_done, payment_reference) VALUES
 (2, 1, 'confirmed', 'free', 0.00, FALSE, NULL),
@@ -192,3 +216,28 @@ INSERT INTO user_clubs (user_id, club_id) VALUES
 (5, 8), -- Ella -> Photography Club
 (1, 6), -- Pratham -> Environmental Club
 (3, 5); -- Sophia -> Music & Performing Arts Club
+
+
+-- SELECT STATEMENTS
+
+SELECT * FROM users;
+
+SELECT * FROM clubs;
+
+SELECT * FROM user_clubs;
+
+SELECT * FROM events;
+
+SELECT * FROM eventRegistration;
+
+SELECT * FROM notifications;
+
+SELECT * FROM feedback;
+
+SELECT * FROM badges;
+
+SELECT * FROM user_badges;
+
+SELECT * FROM leaderboard;
+
+COMMIT;
