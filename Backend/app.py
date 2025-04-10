@@ -756,4 +756,4 @@ docker_host = "0.0.0.0"
 local_host = "127.0.0.1"
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host=docker_host, port=8000, reload=True)
+    uvicorn.run("app:app", host=local_host, port=8000, reload=True)
