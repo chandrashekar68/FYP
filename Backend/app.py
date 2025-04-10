@@ -16,7 +16,7 @@ from paypal import router as paypal_router
 from gamification import award_points, router as gamification_router
 from qr import generate_qr_token, router as qr_router
 from datetime import datetime
-
+import uuid
 
 app = FastAPI()
 
@@ -501,33 +501,26 @@ async def google_signup(request: TokenRequest):
 
         user_info = response.json()
 
-        print("hi 1")
-
         connection = get_db_connection()
         cursor = connection.cursor()
 
         # Check if user already exists
         cursor.execute("SELECT * FROM users WHERE email = %s", (user_info["email"],))
         existing_user = cursor.fetchone()
-
-        print("hi 2")
-
         if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
 
-        print("hi 3")
+        # Generate a random password and hash it using hashlib
+        random_password = str(uuid.uuid4())
+        hashed_password = hashlib.sha256(random_password.encode()).hexdigest()
 
-        # Create new user
-        cursor.execute("INSERT INTO users (user_name, email) VALUES (%s, %s)", 
-                       (user_info["name"], user_info["email"]))
+        # Insert new user
+        cursor.execute("INSERT INTO users (user_name, email, password_hash) VALUES (%s, %s, %s)", 
+               ("", user_info["email"], hashed_password))
         connection.commit()
-
-        print("hi 4")
 
         cursor.close()
         connection.close()
-
-        print("hi 5")
 
         return {"message": "Google Signup Successful"}
 
