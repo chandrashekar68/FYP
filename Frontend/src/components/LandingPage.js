@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
+  Container,
   Row,
   Col,
   Button,
@@ -10,15 +11,11 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
-  Modal,
-  ModalHeader,
-  ModalBody,
 } from "reactstrap";
 import { Card, CardBody, CardTitle, CardText } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Chatbot from "./Chatbot";
-import ViewDetailsModal from "./ViewDetailsModal";
-import FeedbackForm from "./FeedbackForm";
+import ViewDetailsModal from "./ViewDetailsModal"; // Import the modal component
 import "../styles/Chatbot.css";
 import "../styles/LandingPage.css";
 
@@ -32,10 +29,6 @@ const LandingPage = () => {
   const [userEmail, setUserEmail] = useState("");
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-
-  // Feedback Modal
-  const [feedbackEvent, setFeedbackEvent] = useState(null);
-  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("userEmail");
@@ -77,17 +70,6 @@ const LandingPage = () => {
   const handleViewDetails = (event) => {
     setSelectedEvent(event);
     setModalOpen(true);
-  };
-
-  // Feedback Modal handlers
-  const openFeedbackModal = (event) => {
-    setFeedbackEvent(event);
-    setIsFeedbackModalOpen(true);
-  };
-
-  const closeFeedbackModal = () => {
-    setFeedbackEvent(null);
-    setIsFeedbackModalOpen(false);
   };
 
   const filterEvents = (events) =>
@@ -133,7 +115,7 @@ const LandingPage = () => {
         </Col>
       </Row>
 
-      {/* Available Events */}
+      {/* All Available Events */}
       {availableEvents.length > 0 && (
         <Row className="mb-5">
           <Col md={12}>
@@ -161,14 +143,12 @@ const LandingPage = () => {
                       <CardText>
                         <strong>Location:</strong> {event.location}
                       </CardText>
+                      {/* Display whether the event is paid or not */}
                       <CardText>
                         <strong>Payment Status:</strong>{" "}
                         {event.is_paid_event ? "Paid" : "Free"}
                       </CardText>
-                      <Button
-                        color="primary"
-                        onClick={() => handleViewDetails(event)}
-                      >
+                      <Button color="primary" onClick={() => handleViewDetails(event)}>
                         View Details
                       </Button>
                     </CardBody>
@@ -190,28 +170,7 @@ const LandingPage = () => {
                 <Col key={event.id} md={4} className="mb-4">
                   <Card>
                     <CardBody>
-                      <div className="event-title-div">
-                        <div>
-                          <CardTitle className="event-title-text">
-                            {event.title}
-                          </CardTitle>
-                        </div>
-                        <div className="event-attendance-feedback-div">
-                          {event.user_event_status === "attended" && (
-                            <>
-                              <span className="attended-tag">Attended</span>
-                              <Button
-                                color="success"
-                                size="sm"
-                                className="mt-2"
-                                onClick={() => openFeedbackModal(event)}
-                              >
-                                Give Feedback
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      <CardTitle>{event.title}</CardTitle>
                       <CardText>
                         <strong>Club:</strong> {event.club_name}
                       </CardText>
@@ -229,14 +188,12 @@ const LandingPage = () => {
                       <CardText>
                         <strong>Location:</strong> {event.location}
                       </CardText>
+                      {/* Display whether the event is paid or not */}
                       <CardText>
                         <strong>Payment Status:</strong>{" "}
                         {event.is_paid_event ? "Paid" : "Free"}
                       </CardText>
-                      <Button
-                        color="primary"
-                        onClick={() => handleViewDetails(event)}
-                      >
+                      <Button color="primary" onClick={() => handleViewDetails(event)}>
                         View Details
                       </Button>
                     </CardBody>
@@ -263,22 +220,6 @@ const LandingPage = () => {
         event={selectedEvent}
         userEmail={userEmail}
       />
-
-      {/* Feedback Modal */}
-      <Modal isOpen={isFeedbackModalOpen} toggle={closeFeedbackModal}>
-        <ModalHeader toggle={closeFeedbackModal}>
-          Feedback for {feedbackEvent?.title}
-        </ModalHeader>
-        <ModalBody>
-          {feedbackEvent && (
-            <FeedbackForm
-              event={feedbackEvent}
-              userEmail={userEmail}
-              onClose={closeFeedbackModal}
-            />
-          )}
-        </ModalBody>
-      </Modal>
     </div>
   );
 };

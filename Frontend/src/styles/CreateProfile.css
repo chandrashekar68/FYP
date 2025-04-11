@@ -84,3 +84,22 @@ footer {
     background-color: #f1f1f1;
     text-align: center;
 }
+
+/* Target the dropdown options */
+.custom-select__option {
+    color: black !important;
+    background-color: white;
+  }
+  
+  /* Highlighted option (on hover/focus) */
+  .custom-select__option--is-focused {
+    background-color: #e6f0ff;
+    color: black;
+  }
+  
+  /* Selected option in the menu */
+  .custom-select__option--is-selected {
+    background-color: #007bff;
+    color: white;
+  }
+  

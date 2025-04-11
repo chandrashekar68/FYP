@@ -89,32 +89,34 @@ const Login = () => {
   });
 
   return (
-    <form onSubmit={handleLogin} className="login-form">
-      <h1>Log In</h1>
-      {error && <p className="error">{error}</p>}
-      <input
-        type="email"
-        placeholder="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Log In</button>
-      <button type="button" onClick={googleLogin} className="google-button">
-        <span className="google-icon">G</span> Sign in with Google
-      </button>
+    <div className="login-container">
+      <form onSubmit={handleLogin} className="login-form">
+        <h1>Log In</h1>
+        {error && <p className="error">{error}</p>}
+        <input
+          type="email"
+          placeholder="Email address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Log In</button>
+        <button type="button" onClick={googleLogin} className="google-button">
+          <span className="google-icon">G</span> Sign in with Google
+        </button>
+      </form>
       <div className="signup-link">
         <span>Don't have an account? </span>
-        <button onClick={() => navigate("/signup")} className="singupBTN">Sign up</button>
+        <button type="button" onClick={() => navigate("/signup")} className="singupBTN">Sign up</button>
       </div>
-    </form>
+    </div>
   );
     
 

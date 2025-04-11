@@ -1,95 +1,101 @@
+/* Ensure full height container */
 .landing-container {
-    margin: 80px;
-}
-
-.side-panel {
-    width: 20%;
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-right: 1px solid #ddd;
-}
-
-.side-panel-links {
-    list-style: none;
-    padding: 0;
-}
-
-.side-panel-links li {
-    margin: 15px 0;
-}
-
-.side-panel-links a {
-    text-decoration: none;
-    color: #007bff;
-    font-weight: bold;
-}
-
-.side-panel-links a:hover {
-    text-decoration: underline;
-}
-
-.main-content {
-    width: 80%;
-    padding: 20px;
-}
-
-.search-bar-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.search-bar {
-    width: 50%;
-}
-
-.filter-button {
-    background-color: #007bff;
-    color: white;
-}
-
-.filter-button svg {
-    margin-right: 5px;
-}
-
-.create-event-button-container {
-    margin-bottom: 20px;
-    text-align: right;
-}
-
-.event-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.event-card {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
-}
-
-.event-card:hover {
-    transform: scale(1.05);
-}
+    min-height: 90vh;
+    background-color: #ffffff1a;
+    padding: 2rem;
+    width: 100%;
+  }
   
-.attended-tag {
+  /* Ensure full width for root and body */
+  body, #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+  
+  /* Section titles */
+  .section-title {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  /* Grid for event cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Each card container */
+  .card-body {
+    background-color: #f5f5f500;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .card-body:hover {
+    transform: scale(1.02);
+  }
+  
+  /* Attended tag */
+  .attended-tag {
     background-color: #28a745;
     color: white;
-    font-size: 0.75rem;
-    padding: 4px 8px;
-    border-radius: 5px;
-    font-weight: bold;
-}
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Chatbot floating button */
+  .chatbot-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 999;
+  }
+  
+  .chatbot-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    font-size: 24px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+  }
+  
+  .chatbot-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Responsive tweaks if needed */
+  @media (max-width: 768px) {
+    .section-title {
+      font-size: 1.4rem;
+    }
+  
+    .card-body {
+      padding: 0.8rem;
+    }
+  }
 
-.event-title-div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.event-attendance-feedback-div{
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-}
+  .search-filter-bar {
+    position: sticky;
+    top: 70px; /* Adjust this based on your header height */
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0);
+    padding-left: 25%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    width: 80%;
+  }
+  

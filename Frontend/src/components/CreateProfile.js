@@ -78,7 +78,7 @@ const CreateProfile = () => {
   };
 
   return (
-    <div className="profile-container">
+    <div>
       <h2 className="form-title">Create Profile</h2>
       <Form onSubmit={handleSubmit}>
       <FormGroup className="form-group">
@@ -98,12 +98,14 @@ const CreateProfile = () => {
         <FormGroup className="form-group">
           <Label for="role" className="form-label">Role</Label>
           <Select
-            id="role"
-            options={roleOptions}
-            value={roleOptions.find(opt => opt.value === role)}
-            onChange={handleRoleChange}
-            className="select-field"
-          />
+  id="role"
+  options={roleOptions}
+  value={roleOptions.find(opt => opt.value === role)}
+  onChange={handleRoleChange}
+  className="select-field"
+  classNamePrefix="custom-select"
+/>
+
         </FormGroup>
 
         {role === "Student" && (
