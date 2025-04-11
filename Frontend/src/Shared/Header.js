@@ -7,31 +7,43 @@ import { useNavigate } from "react-router-dom";
 import Notification from "../components/Notification";
 
 const Header = () => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
 
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0); // ✅ Only one declaration
+  const [showNotifications, setShowNotifications] = useState(false);
+
   const navigate = useNavigate();
-  const sideDrawerRef = useRef(null);
+
+  const fetchUserRole = async (email) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/get_user_role?email=${email}`);
+      setUserRole(response.data.user_role);
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+    }
+  };
+
+  const fetchNotifications = async (email) => {
+    try {
+      const res = await axios.get(`http://localhost:8000/users/${email}/notifications`);
+      setNotifications(res.data.notifications);
+      setUnreadCount(res.data.unread_count);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
 
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     if (userEmail) {
       setIsLoggedIn(true);
       fetchUserRole(userEmail);
+      fetchNotifications(userEmail);
     }
   }, []);
-
-  const fetchUserRole = async (email) => {
-    try {
-      const response = await axios.get(`http://localhost:8000/get_user_role?email=${email}`);
-      // console.log(`${response.data.user_role}`);
-      setUserRole(response.data.user_role);
-    } catch (error) {
-      console.error("Error fetching user role:", error);
-    }
-  };
 
   const handleLoginClick = () => {
     navigate("/login");
@@ -44,37 +56,38 @@ const Header = () => {
     navigate("/");
   };
 
-  const toggleDrawer = () => {
-    setIsDrawerOpen(!isDrawerOpen);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sideDrawerRef.current && !sideDrawerRef.current.contains(event.target) && !event.target.closest(".submenu-icon")) {
-        setIsDrawerOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   return (
     <header className="header">
       <div className="left">
-        <button className="submenu-icon" onClick={toggleDrawer}>
-          <SubmenuIcon />
-        </button>
-        <h1 className="mb-0 d-inline">SJCE</h1>
-        <h1 className="mb-0 d-inline ms-2">COLLEGE</h1>
-        <h1 className="mb-0 d-inline ms-2">EVENTS</h1>
+        <h1 className="mb-0 d-inline">SJCE COLLEGE EVENTS</h1>
       </div>
       <nav className="right">
         <ul>
-          
-          <li><Notification /></li>
+          <li className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
+            🔔
+            {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+
+            {showNotifications && (
+              <div className="notification-dropdown">
+                <h4 style={{ fontSize: "1rem" }}>Notifications</h4>
+                {notifications.length === 0 ? (
+                  <div className="notification-item" style={{ fontSize: "0.9rem" }}>
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map((note) => (
+                    <div key={note.id} className="notification-item" style={{ fontSize: "0.9rem" }}>
+                      <strong style={{ fontSize: "1rem" }}>{note.title}</strong>
+                      <div>{note.message}</div>
+                      <div style={{ fontSize: "0.75rem", marginTop: "4px", color: "#888" }}>
+                        {new Date(note.sent_at).toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </li>
 
           {/* Show Register to Club Button for Logged-in Users */}
           {isLoggedIn && (
@@ -93,7 +106,7 @@ const Header = () => {
               </button>
             </li>
           )}
-          
+
           {isLoggedIn && (userRole === "Supervisor") && (
             <li>
               <button className="create-event-btn" onClick={() => navigate('/add-club')}>
@@ -120,17 +133,6 @@ const Header = () => {
           )}
         </ul>
       </nav>
-
-      <div className={`side-drawer ${isDrawerOpen ? "open" : ""}`} ref={sideDrawerRef}>
-        <ul>
-          <li>
-            <a href="/">SJCE EMS</a>
-          </li>
-          <li>About</li>
-          <li>Events</li>
-          {!isLoggedIn && <li onClick={handleLoginClick}>Login</li>}
-        </ul>
-      </div>
     </header>
   );
 };

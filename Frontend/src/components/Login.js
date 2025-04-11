@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import "../styles/Login.css";
+import "../styles/Login.css"; // ✅ This must match your folder structure
+
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
@@ -88,37 +89,35 @@ const Login = () => {
   });
 
   return (
-    <div className="wrapper">
-      <div className="login-container">
-        <form onSubmit={handleLogin}>
-          <h1>Log In</h1>
-          {error && <p className="error">{error}</p>}
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit">Log In</button>
-          <button type="button" onClick={googleLogin} className="google-button">
-            <span className="google-icon">G</span> Sign in with Google
-          </button>
-        </form>
-        <div className="signup-link">
-          <span>Don't have an account? </span>
-          <button onClick={() => navigate("/signup")}>Sign up</button>
-        </div>
+    <form onSubmit={handleLogin} className="login-form">
+      <h1>Log In</h1>
+      {error && <p className="error">{error}</p>}
+      <input
+        type="email"
+        placeholder="Email address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <button type="submit">Log In</button>
+      <button type="button" onClick={googleLogin} className="google-button">
+        <span className="google-icon">G</span> Sign in with Google
+      </button>
+      <div className="signup-link">
+        <span>Don't have an account? </span>
+        <button onClick={() => navigate("/signup")} className="singupBTN">Sign up</button>
       </div>
-    </div>
+    </form>
   );
+    
+
 };
 
 export default Login;

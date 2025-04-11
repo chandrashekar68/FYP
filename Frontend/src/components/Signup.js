@@ -60,45 +60,41 @@ const Signup = () => {
     },
     onError: () => setError("Signup Failed"),
   });
-
   return (
-    <div className="wrapper">
-      <div className="login-container">
-        <h1>Signup</h1>
-        {error && <p className="error">{error}</p>}
-        <form onSubmit={handleSignup}>
-          <div className="form-row">
-            <div className="form-col">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit">Signup</button>
-        </form>
-        <button onClick={googleSignup} className="google-button">
-          <span className="google-icon">G</span> Signup with Google
-        </button>
-        <div className="signup-link">
-          <span>Already have an account? </span>
-          <button onClick={() => navigate("/login")}>Login</button>
+    <form onSubmit={handleSignup}>
+      <h1>Signup</h1>
+      {error && <p className="error">{error}</p>}
+      <div className="form-row">
+        <div className="form-col">
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
       </div>
-    </div>
+      <div>
+        <label>Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
+      <button type="submit">Signup</button>
+      <button onClick={googleSignup} className="google-button">
+        <span className="google-icon">G</span> Signup with Google
+      </button>
+      <div className="signup-link">
+        <span>Already have an account? </span>
+        <button onClick={() => navigate("/login")}>Login</button>
+      </div>
+    </form>
   );
+  
 };
 
 export default Signup;

@@ -1,196 +1,176 @@
-/* Global Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
 }
 
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
-}
-
-/* Header Styles */
-.header {
-  position: fixed; /* Makes the header fixed at the top */
-  top: 0; /* Aligns the header to the top */
-  /* viewport */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100vw;
-  padding: 15px 30px;
-  background: linear-gradient(90deg, #4e73df, #224abe); /* Gradient background */
-  border-bottom: 1px solid #ddd;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  background: linear-gradient(90deg, #2c3e50, #4ca1af);
+  background-size: 400% 400%;
+  animation: gradientAnimation 10s ease infinite;
+  color: white;
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
   z-index: 999;
+  padding: 8px 24px;
 }
 
-.left {
-  display: flex;
-  align-items: center;
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-h1 {
-  margin: 0;
-  font-size: 1.75em;
-  font-weight: bold;
-  color: white; /* White text for the header */
-  text-transform: uppercase; /* Uppercase for modern styling */
-  letter-spacing: 1px; /* Spacing between letters */
-}
-
-.submenu-icon {
-  font-size: 28px;
-  margin-right: 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease; /* Smooth background change on hover */
-}
-
-.submenu-icon:hover {
-  background-color: rgba(255, 255, 255, 0.2); /* Subtle hover effect */
-}
-
-.submenu-icon svg {
-  width: 28px; /* Increased width for better visibility */
-  height: 28px;
-  fill: white; /* White icon color */
-  transition: transform 0.3s ease; /* Smooth rotation for effect */
-}
-
-.submenu-icon:hover svg {
-  transform: rotate(90deg); /* Rotate icon on hover */
+.left h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
 }
 
 .right ul {
   display: flex;
   list-style: none;
   align-items: center;
-  margin: 0;
-  padding: 0;
+  gap: 20px;
 }
 
 .right li {
-  margin-left: 20px;
-  font-size: 1.1em;
+  font-size: 0.95rem;
   color: white;
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .right li:hover {
-  color: #ffbb33; /* Change color on hover */
+  color: #ffd166;
+}
+
+.register-club-btn,
+.create-event-btn {
+  background-color: #ff6f61;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.register-club-btn:hover,
+.create-event-btn:hover {
+  background-color: #e4574f;
 }
 
 .profile-photo {
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 2px solid white; /* Border for the profile photo */
-  transition: transform 0.3s ease; /* Smooth transform on hover */
+  border: 2px solid white;
+  transition: transform 0.3s ease;
 }
 
 .profile-photo:hover {
-  transform: scale(1.1); /* Slightly enlarge the photo on hover */
+  transform: scale(1.1);
 }
 
-/* Side Drawer Styles */
-.side-drawer {
-  position: fixed;
-  top: 0;
-  left: -250px; /* Initially off-screen */
-  width: 250px;
-  height: 100%;
-  background-color: #333;
-  color: white;
-  transition: left 0.3s ease; /* Smooth transition for sliding */
-  padding: 20px;
-  z-index: 1000; /* Ensures the side drawer is above other content */
-}
-
-.side-drawer.open {
-  left: 0; /* When open, slide in */
-}
-
-.side-drawer ul {
-  list-style: none;
-  padding: 0;
-}
-
-.side-drawer li {
-  margin: 20px 0;
-  font-size: 1.2em;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.side-drawer li:hover {
-  color: #ffbb33; /* Change color on hover */
-}
-
-.side-drawer li:last-child {
-  margin-bottom: 0;
-}
+/* Notification Bell */
 .notification-icon {
-  margin-left: 10px;
-  width: 24px; /* Adjust size */
-  height: 24px;
-  cursor: pointer; /* Indicates interactivity */
-  margin-right: 16px; /* Add spacing if needed */
+  font-size: 1.1rem;
+  position: relative;
+  cursor: pointer;
 }
+
+/* Notification Badge */
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  background-color: red;
+  color: white;
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+/* Notification Dropdown */
+.notification-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #fff;
+  color: #333;
+  width: 280px;
+  max-height: 360px;
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  z-index: 9999;
+  font-size: 0.85rem;
+}
+
+.notification-dropdown h4 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.notification-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item strong {
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+.notification-item div {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Profile dropdown */
 .profile-menu {
   position: absolute;
-  right: 10px; /* Adjust this based on your layout */
-  top: 60px; /* Position it below the profile icon */
-  background-color: white; /* Menu background color */
-  border-radius: 8px; /* Rounded corners for modern look */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Smooth appear effect */
-  opacity: 0; /* Start hidden */
-  transform: translateY(-10px); /* Start slightly moved up */
-  pointer-events: none; /* Prevent interaction until visible */
-  z-index: 1000; /* Ensure it's above other elements */
-}
-
-.profile-photo:hover + .profile-menu, 
-.profile-menu:hover {
-  opacity: 1; /* Make visible on hover */
-  transform: translateY(0); /* Slide into place on hover */
-  pointer-events: auto; /* Allow interaction */
+  background-color: white;
+  color: black;
+  top: 50px;
+  right: 0;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  padding: 10px 0;
+  width: 160px;
+  z-index: 2000;
+  font-size: 0.85rem;
 }
 
 .profile-menu p {
+  padding: 10px 16px;
   margin: 0;
-  padding: 12px 20px; /* Comfortable padding */
-  font-size: 1em; /* Uniform font size */
-  color: #333; /* Text color */
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth hover effect */
+  transition: background-color 0.2s ease;
 }
 
 .profile-menu p:hover {
-  background-color: #f4f4f4; /* Light background on hover */
-}
-
-.register-club-btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.3s;
-  margin-right: 10px;
-}
-
-.register-club-btn:hover {
-  background-color: #0056b3;
+  background-color: #f0f0f0;
 }
