@@ -10,7 +10,7 @@ FRONTEND_PATH="$(pwd)/Frontend/src"
 # Start Backend in this terminal
 echo "Starting Backend in this terminal"
 cd "$BACKEND_PATH"
-python3 app.py &
+python app.py &
 
 # Start Frontend in a new terminal and keep it open
 echo "Starting Frontend in new terminal"
